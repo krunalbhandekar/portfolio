@@ -34,7 +34,7 @@ export function HeroSection({ home, settings, names }: SectionProps) {
       ];
   return (
     <section className="container-page flex flex-col gap-8 pt-16 pb-12 sm:pt-24">
-      <StatusBadge availability={settings.availability} />
+      <StatusBadge text={settings.availabilityText} />
       <div className="flex max-w-3xl flex-col gap-5">
         {hero?.eyebrow ? (
           <p className="font-mono text-sm text-muted-foreground">

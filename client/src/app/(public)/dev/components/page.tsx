@@ -79,7 +79,7 @@ export default function ComponentsPage() {
             <Badge>Professional</Badge>
             <Badge variant="secondary">Personal</Badge>
             <Badge variant="outline">In progress</Badge>
-            <StatusBadge availability={{ status: "open", label: "Available for opportunities" }} />
+            <StatusBadge text="Available for opportunities" />
             <span className="text-sm text-muted-foreground">
               Press <Kbd>⌘</Kbd> <Kbd>K</Kbd> to search
             </span>

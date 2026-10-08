@@ -36,7 +36,7 @@ export default async function ContactPage() {
           title="Let's talk"
           description="Hiring, a freelance project or just want to say hi? Send a message — I read every one."
         />
-        <StatusBadge availability={settings.availability} />
+        <StatusBadge text={settings.availabilityText} />
         <ul className="flex flex-col gap-4 text-sm">
           {settings.email ? (
             <li className="flex items-center gap-3">

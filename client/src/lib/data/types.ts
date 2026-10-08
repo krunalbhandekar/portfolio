@@ -19,7 +19,8 @@ export type Settings = {
   location: string;
   email: string;
   phone: string;
-  availability: { status: "open" | "freelance" | "not-looking"; label: string };
+  /** Badge text; empty means no availability badge. */
+  availabilityText: string;
   accentColor: string;
   socials: Social[];
   announcement: { enabled: boolean; text: string; href: string };

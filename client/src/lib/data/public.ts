@@ -132,7 +132,7 @@ export const fallbackSettings: Settings = {
   location: siteConfig.location,
   email: siteConfig.email,
   phone: "",
-  availability: { status: "open", label: siteConfig.availability },
+  availabilityText: siteConfig.availability,
   accentColor: "",
   socials: siteConfig.socials.map((s) => ({ platform: s.icon, label: s.label, url: s.href })),
   announcement: { enabled: false, text: "", href: "" },
@@ -150,7 +150,7 @@ export async function getSettings(): Promise<Settings> {
   return {
     ...fallbackSettings,
     ...settings,
-    availability: settings.availability ?? fallbackSettings.availability,
+    availabilityText: settings.availabilityText ?? "",
   };
 }
 

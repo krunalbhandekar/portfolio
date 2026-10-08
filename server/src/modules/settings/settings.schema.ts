@@ -10,7 +10,6 @@ export const SOCIAL_PLATFORMS = [
   "email",
   "other",
 ] as const;
-export const AVAILABILITY = ["open", "freelance", "not-looking"] as const;
 
 export const settingsInput = z.object({
   name: requiredText(80),
@@ -19,9 +18,8 @@ export const settingsInput = z.object({
   location: text(80),
   email: z.union([z.literal(""), z.email()]).default(""),
   phone: text(30),
-  availability: z
-    .object({ status: z.enum(AVAILABILITY).default("open"), label: text(60) })
-    .default({ status: "open", label: "" }),
+  /** Availability badge text, e.g. "Open to opportunities". Empty hides the badge. */
+  availabilityText: text(60),
   accentColor: z
     .string()
     .regex(/^#[0-9a-fA-F]{6}$/, "Use a 6-digit hex colour, e.g. #34d399")

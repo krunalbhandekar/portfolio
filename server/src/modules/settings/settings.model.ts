@@ -11,7 +11,7 @@ const settingsSchema = new Schema(
     location: String,
     email: String,
     phone: String,
-    availability: sub({ status: String, label: String }),
+    availabilityText: String,
     accentColor: String,
     socials: [sub({ platform: String, label: String, url: String })],
     announcement: sub({ enabled: Boolean, text: String, href: String }),

@@ -1,7 +1,7 @@
 /**
  * Layout chrome configuration.
  *
- * Fallback values only: the live name, role, socials, email and availability come from Site
+ * Fallback values only: the live name, role, socials, email and availability text come from Site
  * Settings in the admin (`getSettings()`); these are used if the API is unreachable.
  * Navigation links stay here.
  */

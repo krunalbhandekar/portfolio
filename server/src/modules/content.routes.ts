@@ -38,7 +38,7 @@ export const contentRoutes = Router()
         location: "",
         email: "",
         phone: "",
-        availability: { status: "open", label: "" },
+        availabilityText: "",
         accentColor: "#34d399",
         socials: [],
         announcement: { enabled: false, text: "", href: "" },

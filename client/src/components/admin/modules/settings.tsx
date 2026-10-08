@@ -11,7 +11,7 @@ import {
 import { FormSection } from "../kit/layout";
 import { MediaField } from "../media/media-fields";
 import type { SingletonConfig } from "../resources/types";
-import { AVAILABILITY, SOCIAL_PLATFORMS } from "./options";
+import { SOCIAL_PLATFORMS } from "./options";
 
 function SettingsFields() {
   return (
@@ -54,13 +54,15 @@ function SettingsFields() {
 
       <FormSection
         title="Availability"
-        description="Drives the status badge in the hero and footer."
+        description="Badge in the hero, footer and contact page, with a pulsing dot in your accent colour."
       >
-        <SelectField name="availability.status" label="Status" options={AVAILABILITY} />
         <TextField
-          name="availability.label"
+          name="availabilityText"
           label="Badge text"
           placeholder="Available for opportunities"
+          maxLength={60}
+          description="Leave empty to hide the badge everywhere."
+          wide
         />
       </FormSection>
 
@@ -139,7 +141,7 @@ export const settingsConfig: SingletonConfig = {
     location: "",
     email: "",
     phone: "",
-    availability: { status: "open", label: "" },
+    availabilityText: "",
     accentColor: "#34d399",
     socials: [],
     announcement: { enabled: false, text: "", href: "" },

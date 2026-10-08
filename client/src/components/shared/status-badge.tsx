@@ -1,20 +1,11 @@
 import { cn } from "@/lib/utils";
-import type { Settings } from "@/lib/data/types";
 
-const DEFAULT_LABELS: Record<Settings["availability"]["status"], string> = {
-  open: "Available for opportunities",
-  freelance: "Available for freelance",
-  "not-looking": "Not looking right now",
-};
-
-export function StatusBadge({
-  availability,
-  className,
-}: {
-  availability: Settings["availability"];
-  className?: string;
-}) {
-  const active = availability.status !== "not-looking";
+/**
+ * Availability badge (Site Settings → Availability). Renders nothing when the text is empty.
+ * The pulsing dot uses the site accent colour (`--brand`).
+ */
+export function StatusBadge({ text, className }: { text: string; className?: string }) {
+  if (!text.trim()) return null;
   return (
     <span
       className={cn(
@@ -23,17 +14,10 @@ export function StatusBadge({
       )}
     >
       <span className="relative flex size-2" aria-hidden="true">
-        {active ? (
-          <span className="absolute inline-flex size-full animate-ping rounded-full bg-brand opacity-60" />
-        ) : null}
-        <span
-          className={cn(
-            "relative inline-flex size-2 rounded-full",
-            active ? "bg-brand" : "bg-muted-foreground",
-          )}
-        />
+        <span className="absolute inline-flex size-full animate-ping rounded-full bg-brand opacity-60" />
+        <span className="relative inline-flex size-2 rounded-full bg-brand" />
       </span>
-      {availability.label || DEFAULT_LABELS[availability.status]}
+      {text}
     </span>
   );
 }

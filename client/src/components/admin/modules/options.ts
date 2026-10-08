@@ -54,11 +54,6 @@ export const SOCIAL_PLATFORMS = opts([
   ["email", "Email"],
   ["other", "Other"],
 ]);
-export const AVAILABILITY = opts([
-  ["open", "Open to opportunities"],
-  ["freelance", "Available for freelance"],
-  ["not-looking", "Not looking"],
-]);
 export const CTA_VARIANTS = opts([
   ["primary", "Primary"],
   ["outline", "Outline"],

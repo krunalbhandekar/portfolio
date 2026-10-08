@@ -65,7 +65,7 @@ await ensure(
       "Here is my engineering journey: the systems I've built, the problems I've solved, the decisions I've made, and the impact of my work.",
     location: "Pune, India",
     email: "krunalbhandekar10@gmail.com",
-    availability: { status: "open", label: "Available for opportunities" },
+    availabilityText: "Available for opportunities",
     accentColor: "#34d399",
     socials: [
       { platform: "github", label: "GitHub", url: "https://github.com/krunalbhandekar" },

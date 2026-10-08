@@ -35,7 +35,7 @@ export async function Footer({ settings }: { settings: Settings }) {
             <p className="font-medium">{settings.name}</p>
             <p className="text-sm text-muted-foreground">{settings.role}</p>
           </div>
-          <StatusBadge availability={settings.availability} />
+          <StatusBadge text={settings.availabilityText} />
           {settings.email ? (
             <div className="flex items-center gap-2 font-mono text-xs">
               <a href={`mailto:${settings.email}`} className={linkClass}>
