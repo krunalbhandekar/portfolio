@@ -17,10 +17,14 @@ const envSchema = z.object({
   JWT_REFRESH_SECRET: laterPhase,
   REVALIDATE_SECRET: laterPhase,
 
-  // Phase 3 — media
-  CLOUDINARY_CLOUD_NAME: laterPhase,
-  CLOUDINARY_API_KEY: laterPhase,
-  CLOUDINARY_API_SECRET: laterPhase,
+  // Phase 3 — media (format: cloudinary://<api_key>:<api_secret>@<cloud_name>, read natively by the SDK)
+  CLOUDINARY_URL: z
+    .string()
+    .regex(
+      /^cloudinary:\/\/[^:]+:[^@]+@.+$/,
+      "Expected cloudinary://<api_key>:<api_secret>@<cloud_name>",
+    )
+    .optional(),
 
   // Phase 4 — contact & monitoring
   RESEND_API_KEY: laterPhase,
