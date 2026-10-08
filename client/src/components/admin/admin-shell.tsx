@@ -97,6 +97,11 @@ export function AdminShell({ children }: { children: ReactNode }) {
                 <span className="hidden sm:inline">Sign out</span>
                 <span className="sr-only sm:hidden">Sign out</span>
               </Button>
+              {logout.isError ? (
+                <span role="alert" className="ml-1 max-w-48 text-xs text-destructive">
+                  Sign-out failed: {logout.error.message}
+                </span>
+              ) : null}
             </div>
           </div>
           <ModuleNav orientation="horizontal" />

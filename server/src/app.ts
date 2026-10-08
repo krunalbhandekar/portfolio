@@ -61,9 +61,10 @@ app.get("/api/v1/health", (_req, res) => {
   });
 });
 
+// Admin routes are mounted before the general limiter, so they don't count against it.
+app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1", apiLimiter);
 app.use("/api/v1/auth", authRoutes);
-app.use("/api/v1/admin", adminRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

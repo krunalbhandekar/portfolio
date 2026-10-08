@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, LoaderCircle, Lock } from "lucide-react";
@@ -26,10 +26,20 @@ export function LoginCard() {
   // Also wakes the API (Render free tier) while the page loads.
   const session = useCurrentAdmin();
   const login = useGoogleLogin();
+  const { reset } = login;
 
+  // Already signed in (fresh /auth/me) → go to the dashboard. Deliberately not keyed on the
+  // sign-in mutation's state: Next.js keeps this page mounted in the background (<Activity>),
+  // so a stale "succeeded" flag would bounce a signed-out user back to /admin in a loop.
   useEffect(() => {
-    if (session.isSuccess || login.isSuccess) router.replace("/admin");
-  }, [session.isSuccess, login.isSuccess, router]);
+    if (session.isSuccess) router.replace("/admin");
+  }, [session.isSuccess, router]);
+
+  // Clear the sign-in attempt (pending/error state) whenever this page is hidden.
+  useLayoutEffect(() => () => reset(), [reset]);
+
+  const signIn = (credential: string) =>
+    login.mutate(credential, { onSuccess: () => router.replace("/admin") });
 
   const busy = login.isPending || login.isSuccess;
 
@@ -55,7 +65,7 @@ export function LoginCard() {
             Signing you in…
           </p>
         ) : (
-          <GoogleSignInButton onCredential={(credential) => login.mutate(credential)} />
+          <GoogleSignInButton onCredential={signIn} />
         )}
 
         {login.isError ? (

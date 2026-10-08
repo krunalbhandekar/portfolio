@@ -1,7 +1,6 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { notifySessionChange } from "@/lib/session-hint";
 
@@ -40,14 +39,16 @@ export function useGoogleLogin() {
 }
 
 export function useLogout() {
-  const queryClient = useQueryClient();
-  const router = useRouter();
   return useMutation({
     mutationFn: () => api.post("/auth/logout", undefined, { refreshOn401: false }),
-    onSettled: () => {
-      queryClient.clear();
+    // Only on success: if sign-out fails the session cookies are still set, so reloading
+    // would just land back in the admin. The shell shows the error instead.
+    onSuccess: () => {
       notifySessionChange();
-      router.replace("/admin/login");
+      // Full reload, not router.replace: Next.js keeps visited pages mounted (<Activity>) with
+      // their state, so a soft navigation could resurrect signed-in UI. A reload clears all
+      // client state, including the React Query cache.
+      window.location.replace("/admin/login");
     },
   });
 }
