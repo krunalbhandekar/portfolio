@@ -64,7 +64,6 @@ await ensure(
     tagline:
       "Here is my engineering journey: the systems I've built, the problems I've solved, the decisions I've made, and the impact of my work.",
     location: "Pune, India",
-    timezone: "Asia/Kolkata",
     email: "krunalbhandekar10@gmail.com",
     availability: { status: "open", label: "Available for opportunities" },
     accentColor: "#34d399",

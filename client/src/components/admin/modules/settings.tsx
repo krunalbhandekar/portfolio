@@ -43,7 +43,6 @@ function SettingsFields() {
           description="Optional; leave empty to hide."
         />
         <TextField name="location" label="Location" placeholder="Pune, India" />
-        <TextField name="timezone" label="Timezone" placeholder="Asia/Kolkata" />
         <TextField
           name="calendarUrl"
           label="Booking link"
@@ -138,7 +137,6 @@ export const settingsConfig: SingletonConfig = {
     role: "",
     tagline: "",
     location: "",
-    timezone: "",
     email: "",
     phone: "",
     availability: { status: "open", label: "" },

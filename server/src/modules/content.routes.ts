@@ -36,7 +36,6 @@ export const contentRoutes = Router()
         role: "",
         tagline: "",
         location: "",
-        timezone: "",
         email: "",
         phone: "",
         availability: { status: "open", label: "" },

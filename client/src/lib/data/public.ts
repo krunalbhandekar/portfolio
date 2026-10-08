@@ -130,7 +130,6 @@ export const fallbackSettings: Settings = {
   role: siteConfig.role,
   tagline: "",
   location: siteConfig.location,
-  timezone: "",
   email: siteConfig.email,
   phone: "",
   availability: { status: "open", label: siteConfig.availability },

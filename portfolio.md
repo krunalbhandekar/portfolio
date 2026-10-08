@@ -121,7 +121,7 @@ vercel.com, linear.app, rauno.me, leerob.com, brittanychiang.com. Borrow their r
   - Photo/avatar, location and an availability status badge (e.g., "Open to opportunities")
   - Primary tech stack chips (React • Node.js • TypeScript • MongoDB)
   - CTAs: **View Projects**, **Download Resume**, **Contact Me**
-- **Bento grid** combining: stats (years, projects, technologies, companies; only numbers you can back up), current role, tech stack, a "Currently building" card, GitHub activity and location/timezone
+- **Bento grid** combining: stats (years, projects, technologies, companies; only numbers you can back up), current role, tech stack, a "Currently building" card, GitHub activity and location
 - **Featured projects:** 3–6 pinned project cards
 - **Short about** with a link to the full About page
 - **Career journey preview** (mini timeline)

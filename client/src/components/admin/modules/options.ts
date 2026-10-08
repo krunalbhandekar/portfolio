@@ -66,7 +66,7 @@ export const CTA_VARIANTS = opts([
 ]);
 export const BENTO_KINDS = opts([
   ["currently-building", "Currently building"],
-  ["location", "Location / timezone"],
+  ["location", "Location"],
   ["stack", "Tech stack"],
   ["github", "GitHub activity"],
   ["custom", "Custom"],

@@ -3,7 +3,8 @@
 type LoaderProps = { src: string; width: number; quality?: number };
 
 // Cloudinary transformation segments look like `e_trim` or `c_fill,w_400`; the version is `v123`.
-const isTransformation = (segment: string) => /^[a-z]{1,3}_/.test(segment) && !/^v\d+$/.test(segment);
+const isTransformation = (segment: string) =>
+  /^[a-z]{1,3}_/.test(segment) && !/^v\d+$/.test(segment);
 
 /**
  * Global next/image loader (portfolio.md §7.4): Cloudinary resizes and picks the format, so

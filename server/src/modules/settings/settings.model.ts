@@ -9,7 +9,6 @@ const settingsSchema = new Schema(
     role: String,
     tagline: String,
     location: String,
-    timezone: String,
     email: String,
     phone: String,
     availability: sub({ status: String, label: String }),

@@ -133,9 +133,6 @@ export function BentoSection({ home, settings, names }: SectionProps) {
                     <MapPin className="size-3.5" aria-hidden="true" /> {card.title || "Based in"}
                   </p>
                   <p className="mt-2 font-medium">{card.body || settings.location}</p>
-                  {settings.timezone ? (
-                    <p className="mt-1 text-sm text-muted-foreground">{settings.timezone}</p>
-                  ) : null}
                 </>
               ) : card.kind === "stack" ? (
                 <>

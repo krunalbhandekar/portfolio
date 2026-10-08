@@ -17,7 +17,6 @@ export const settingsInput = z.object({
   role: requiredText(80),
   tagline: text(160),
   location: text(80),
-  timezone: text(60),
   email: z.union([z.literal(""), z.email()]).default(""),
   phone: text(30),
   availability: z

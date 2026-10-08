@@ -17,7 +17,6 @@ export type Settings = {
   role: string;
   tagline: string;
   location: string;
-  timezone: string;
   email: string;
   phone: string;
   availability: { status: "open" | "freelance" | "not-looking"; label: string };
