@@ -1,11 +1,13 @@
+import Image from "next/image";
 import Link from "next/link";
 import { mainNav } from "@/config/site";
+import type { Media } from "@/lib/data/types";
 import { initials } from "@/lib/initials";
 import { MobileNav } from "./mobile-nav";
 import { NavLink } from "./nav-link";
 import { ThemeToggle } from "./theme-toggle";
 
-export function Navbar({ name }: { name: string }) {
+export function Navbar({ name, logo }: { name: string; logo?: Media | null }) {
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/70 backdrop-blur-xl supports-backdrop-filter:bg-background/60">
       <a
@@ -16,12 +18,26 @@ export function Navbar({ name }: { name: string }) {
       </a>
       <div className="container-page flex h-14 items-center gap-4">
         <Link href="/" className="flex items-center gap-2.5 rounded-md">
-          <span
-            aria-hidden="true"
-            className="flex size-7 items-center justify-center rounded-md border bg-surface font-mono text-xs font-semibold"
-          >
-            {initials(name)}
-          </span>
+          {logo ? (
+            // Decorative: the visible name next to it is the link's accessible name.
+            <Image
+              // e_trim crops uniform padding so wide/padded uploads still read at 28px tall.
+              src={logo.url.replace("/upload/", "/upload/e_trim/")}
+              alt=""
+              width={28}
+              height={28}
+              sizes="56px"
+              preload
+              className="size-7 rounded-md object-contain"
+            />
+          ) : (
+            <span
+              aria-hidden="true"
+              className="flex size-7 items-center justify-center rounded-md border bg-surface font-mono text-xs font-semibold"
+            >
+              {initials(name)}
+            </span>
+          )}
           {/* Visible from sm; still the link's accessible name on mobile. */}
           <span className="sr-only text-sm font-medium sm:not-sr-only">{name}</span>
         </Link>

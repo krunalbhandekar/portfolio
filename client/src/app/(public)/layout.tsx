@@ -21,7 +21,7 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
         </div>
       ) : null}
       <div className="print:hidden">
-        <Navbar name={settings.name} />
+        <Navbar name={settings.name} logo={settings.logo} />
       </div>
       <main id="main" className="flex flex-1 flex-col">
         {children}

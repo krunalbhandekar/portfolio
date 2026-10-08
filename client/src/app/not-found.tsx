@@ -15,7 +15,7 @@ export default async function NotFound() {
   const settings = await getSettings();
   return (
     <>
-      <Navbar name={settings.name} />
+      <Navbar name={settings.name} logo={settings.logo} />
       <main
         id="main"
         className="container-page flex flex-1 flex-col items-start justify-center gap-6 py-24"
