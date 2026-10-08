@@ -1,77 +1,78 @@
 "use client";
 
-import { domAnimation, LazyMotion, m, MotionConfig, type Variants } from "motion/react";
-import type { ReactNode } from "react";
+import { Children, useEffect, useRef, type CSSProperties, type ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
-/** Lazy feature loading + honour the OS "reduce motion" setting. */
-function MotionRoot({ children }: { children: ReactNode }) {
-  return (
-    <LazyMotion features={domAnimation} strict>
-      <MotionConfig reducedMotion="user">{children}</MotionConfig>
-    </LazyMotion>
-  );
-}
-
-const ease = [0.21, 0.47, 0.32, 0.98] as const;
-
-const item: Variants = {
-  hidden: { opacity: 0, y: 16 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease } },
-};
-
-type MotionWrapperProps = { children: ReactNode; className?: string };
-
-/**
- * Fades + slides content in once when it scrolls into view.
- * Don't wrap above-the-fold content (it starts hidden until hydration, which hurts LCP).
- * Uses LazyMotion + `m` so pages without animations never load the motion feature bundle.
+/*
+ * Scroll reveals without an animation library: an IntersectionObserver flips `data-revealed`
+ * and CSS does the transition (globals.css, `[data-reveal]`). Content is only hidden once JS
+ * has run (`html.js`), so it's never invisible without JavaScript, and reduced-motion users
+ * see it immediately. Don't wrap above-the-fold content (it would delay LCP).
  */
-export function Reveal({
-  children,
-  className,
-  delay = 0,
-}: MotionWrapperProps & { delay?: number }) {
+
+function useReveal<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          el.dataset.revealed = "true";
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "0px 0px -10% 0px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return ref;
+}
+
+type RevealProps = { children: ReactNode; className?: string; delay?: number };
+
+/** Fades + slides content in once when it scrolls into view. */
+export function Reveal({ children, className, delay = 0 }: RevealProps) {
+  const ref = useReveal<HTMLDivElement>();
   return (
-    <MotionRoot>
-      <m.div
-        className={className}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, margin: "0px 0px -10% 0px" }}
-        variants={item}
-        transition={{ delay }}
-      >
-        {children}
-      </m.div>
-    </MotionRoot>
+    <div
+      ref={ref}
+      data-reveal=""
+      className={className}
+      style={delay ? ({ "--reveal-delay": `${delay}s` } as CSSProperties) : undefined}
+    >
+      {children}
+    </div>
   );
 }
 
-/** Staggers its <StaggerItem> children when the group scrolls into view. */
+/** Reveals its <StaggerItem> children one after another. */
 export function Stagger({
   children,
   className,
   gap = 0.06,
-}: MotionWrapperProps & { gap?: number }) {
+}: {
+  children: ReactNode;
+  className?: string;
+  gap?: number;
+}) {
+  const ref = useReveal<HTMLDivElement>();
   return (
-    <MotionRoot>
-      <m.div
-        className={className}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, margin: "0px 0px -10% 0px" }}
-        variants={{ hidden: {}, show: { transition: { staggerChildren: gap } } }}
-      >
-        {children}
-      </m.div>
-    </MotionRoot>
+    <div ref={ref} data-reveal-group="" className={className}>
+      {Children.map(children, (child, index) => (
+        <div style={{ "--reveal-delay": `${index * gap}s` } as CSSProperties} className="contents">
+          {child}
+        </div>
+      ))}
+    </div>
   );
 }
 
-export function StaggerItem({ children, className }: MotionWrapperProps) {
+export function StaggerItem({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <m.div className={className} variants={item}>
+    <div data-reveal-item="" className={cn(className)}>
       {children}
-    </m.div>
+    </div>
   );
 }

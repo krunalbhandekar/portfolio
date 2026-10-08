@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { buttonVariants } from "@/components/ui/button";
+import { getSettings } from "@/lib/data/public";
 import { cn } from "@/lib/utils";
 
 const suggestions = [
@@ -10,10 +11,11 @@ const suggestions = [
   { label: "Contact", href: "/contact" },
 ];
 
-export default function NotFound() {
+export default async function NotFound() {
+  const settings = await getSettings();
   return (
     <>
-      <Navbar />
+      <Navbar name={settings.name} />
       <main
         id="main"
         className="container-page flex flex-1 flex-col items-start justify-center gap-6 py-24"
@@ -42,7 +44,7 @@ export default function NotFound() {
           ))}
         </div>
       </main>
-      <Footer />
+      <Footer settings={settings} />
     </>
   );
 }

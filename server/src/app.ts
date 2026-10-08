@@ -13,6 +13,7 @@ import { apiLimiter } from "./middlewares/rate-limit.js";
 import { sanitizeBody } from "./middlewares/sanitize.js";
 import { adminRoutes } from "./modules/admin/admin.routes.js";
 import { authRoutes } from "./modules/auth/auth.routes.js";
+import { publicRoutes } from "./modules/public/public.routes.js";
 import { sendSuccess } from "./utils/response.js";
 
 export const app = express();
@@ -65,6 +66,7 @@ app.get("/api/v1/health", (_req, res) => {
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1", apiLimiter);
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1", publicRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

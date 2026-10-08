@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 
 const MobileNavSheet = dynamic(() => import("./mobile-nav-sheet"), { ssr: false });
 
-export function MobileNav() {
+export function MobileNav({ name }: { name: string }) {
   const [open, setOpen] = useState(false);
   // Start fetching the sheet on intent (hover/focus/touch) so it's ready by the click.
   const [requested, setRequested] = useState(false);
@@ -31,7 +31,7 @@ export function MobileNav() {
       >
         <Menu aria-hidden="true" />
       </Button>
-      {requested ? <MobileNavSheet open={open} onOpenChange={setOpen} /> : null}
+      {requested ? <MobileNavSheet name={name} open={open} onOpenChange={setOpen} /> : null}
     </>
   );
 }

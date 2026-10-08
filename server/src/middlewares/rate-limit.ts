@@ -26,3 +26,6 @@ export const loginLimiter = rateLimit({ ...base, windowMs: 15 * 60_000, limit: 2
 
 /** Token refresh (called automatically by the admin app). */
 export const refreshLimiter = rateLimit({ ...base, windowMs: 15 * 60_000, limit: 120 });
+
+/** Contact form submissions. */
+export const contactLimiter = rateLimit({ ...base, windowMs: 60 * 60_000, limit: 5 });

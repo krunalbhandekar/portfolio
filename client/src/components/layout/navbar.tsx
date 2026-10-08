@@ -1,11 +1,11 @@
 import Link from "next/link";
-import { mainNav, siteConfig } from "@/config/site";
-import { CommandTrigger } from "./command-trigger";
+import { mainNav } from "@/config/site";
+import { initials } from "@/lib/initials";
 import { MobileNav } from "./mobile-nav";
 import { NavLink } from "./nav-link";
 import { ThemeToggle } from "./theme-toggle";
 
-export function Navbar() {
+export function Navbar({ name }: { name: string }) {
   return (
     <header className="sticky top-0 z-40 border-b border-border/70 bg-background/70 backdrop-blur-xl supports-backdrop-filter:bg-background/60">
       <a
@@ -20,10 +20,10 @@ export function Navbar() {
             aria-hidden="true"
             className="flex size-7 items-center justify-center rounded-md border bg-surface font-mono text-xs font-semibold"
           >
-            {siteConfig.shortName}
+            {initials(name)}
           </span>
           {/* Visible from sm; still the link's accessible name on mobile. */}
-          <span className="sr-only text-sm font-medium sm:not-sr-only">{siteConfig.name}</span>
+          <span className="sr-only text-sm font-medium sm:not-sr-only">{name}</span>
         </Link>
 
         <nav aria-label="Main" className="ml-auto hidden items-center gap-6 md:flex">
@@ -35,9 +35,9 @@ export function Navbar() {
         </nav>
 
         <div className="ml-auto flex items-center gap-1 md:ml-2">
-          <CommandTrigger className="mr-1" />
+          {/* ⌘K command palette trigger returns in Phase 6 (components/layout/command-trigger.tsx). */}
           <ThemeToggle />
-          <MobileNav />
+          <MobileNav name={name} />
         </div>
       </div>
     </header>

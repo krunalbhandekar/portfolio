@@ -1,0 +1,35 @@
+import type { ComponentType, ReactNode } from "react";
+import type { ContentDoc } from "@/lib/admin/types";
+
+export type Column = {
+  header: string;
+  cell: (doc: ContentDoc) => ReactNode;
+  /** API field for `?sort=`; omit for unsortable columns. */
+  sortKey?: string;
+  className?: string;
+};
+
+export type ResourceConfig = {
+  /** Admin URL segment, e.g. "experience" → /admin/experience. */
+  key: string;
+  /** Admin API segment, e.g. "experiences" → /api/v1/admin/experiences. */
+  apiPath: string;
+  title: string;
+  singular: string;
+  description: string;
+  /** Field shown as the item's name (editor title, delete confirmation). */
+  labelField: string;
+  columns: Column[];
+  /** Initial values for "New …" — every field the form renders. */
+  defaults: Record<string, unknown>;
+  /** Form body, rendered inside a react-hook-form <FormProvider>. */
+  Fields: ComponentType;
+};
+
+export type SingletonConfig = {
+  apiPath: string;
+  title: string;
+  description: string;
+  defaults: Record<string, unknown>;
+  Fields: ComponentType;
+};

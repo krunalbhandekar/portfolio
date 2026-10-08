@@ -11,6 +11,7 @@ export function AdminAvatar({ admin }: { admin: AdminUser }) {
         height={28}
         className="size-7 rounded-full border"
         referrerPolicy="no-referrer"
+        unoptimized
       />
     );
   }

@@ -4,6 +4,8 @@ import { requireCsrfHeader } from "../../middlewares/csrf.js";
 import { requireAdmin } from "../../middlewares/require-admin.js";
 import { sendSuccess } from "../../utils/response.js";
 import { Admin } from "../admins/admin.model.js";
+import { contentRoutes } from "../content.routes.js";
+import { mediaRoutes } from "../media/media.routes.js";
 
 /**
  * Everything under /api/v1/admin is admin-only and CSRF-protected.
@@ -17,4 +19,6 @@ export const adminRoutes = Router()
       lastLoginAt: admin?.lastLoginAt ?? null,
       database: isDatabaseUp() ? "up" : "down",
     });
-  });
+  })
+  .use("/media", mediaRoutes)
+  .use(contentRoutes);

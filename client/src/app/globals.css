@@ -215,3 +215,97 @@ html[data-theme-pref="dark"] [data-theme-option="dark"] {
     scroll-behavior: auto !important;
   }
 }
+
+/* Rich text from the CMS (sanitised server-side). */
+.rich-text {
+  color: var(--muted-foreground);
+  line-height: 1.75;
+}
+.rich-text > * + * {
+  margin-top: 1em;
+}
+.rich-text h2,
+.rich-text h3,
+.rich-text h4,
+.rich-text strong {
+  color: var(--foreground);
+  font-weight: 600;
+}
+.rich-text h2 {
+  font-size: 1.25rem;
+  margin-top: 1.75em;
+}
+.rich-text h3 {
+  font-size: 1.075rem;
+  margin-top: 1.5em;
+}
+.rich-text a {
+  color: var(--brand-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.rich-text ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+}
+.rich-text ol {
+  list-style: decimal;
+  padding-left: 1.25rem;
+}
+.rich-text li + li {
+  margin-top: 0.35em;
+}
+.rich-text blockquote {
+  border-left: 2px solid var(--border);
+  padding-left: 1rem;
+  font-style: italic;
+}
+.rich-text code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  background: var(--muted);
+  border-radius: 0.375rem;
+  padding: 0.1em 0.35em;
+}
+.rich-text pre {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+.rich-text pre code {
+  background: transparent;
+  padding: 0;
+}
+
+@media print {
+  html {
+    color-scheme: light;
+  }
+  body {
+    background: white !important;
+    color: black;
+  }
+}
+
+/* Scroll reveal (components/motion/reveal.tsx). Hidden only when JS is available. */
+html.js [data-reveal]:not([data-revealed]),
+html.js [data-reveal-group]:not([data-revealed]) [data-reveal-item] {
+  opacity: 0;
+  transform: translateY(16px);
+}
+[data-reveal],
+[data-reveal-item] {
+  transition:
+    opacity 0.5s cubic-bezier(0.21, 0.47, 0.32, 0.98),
+    transform 0.5s cubic-bezier(0.21, 0.47, 0.32, 0.98);
+  transition-delay: var(--reveal-delay, 0s);
+}
+@media (prefers-reduced-motion: reduce) {
+  html.js [data-reveal]:not([data-revealed]),
+  html.js [data-reveal-group]:not([data-revealed]) [data-reveal-item] {
+    opacity: 1;
+    transform: none;
+  }
+}

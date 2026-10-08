@@ -80,7 +80,7 @@ function networkMessage(timedOut: boolean) {
     : "Can't reach the server. Check your connection and try again.";
 }
 
-async function parse<T>(res: Response): Promise<T> {
+async function parseEnvelope<T>(res: Response): Promise<ApiEnvelope<T>> {
   const envelope = (await res.json().catch(() => null)) as ApiEnvelope<T> | null;
   if (!envelope) {
     // Not our API's JSON (e.g. proxy error page, or another app on the API port).
@@ -98,8 +98,17 @@ async function parse<T>(res: Response): Promise<T> {
       envelope?.error?.details,
     );
   }
-  return envelope.data as T;
+  return envelope;
 }
+
+async function parse<T>(res: Response): Promise<T> {
+  return (await parseEnvelope<T>(res)).data as T;
+}
+
+export type Paginated<T> = {
+  items: T[];
+  meta: { total: number; page: number; limit: number; totalPages: number };
+};
 
 let refreshing: Promise<boolean> | null = null;
 
@@ -114,17 +123,26 @@ export function refreshSession() {
   return refreshing;
 }
 
-async function request<T>(method: Method, path: string, options: RequestOptions = {}): Promise<T> {
+async function sendWithRefresh(method: Method, path: string, options: RequestOptions) {
   const res = await send(method, path, options);
   if (res.status === 401 && options.refreshOn401 !== false && (await refreshSession())) {
-    return parse<T>(await send(method, path, options));
+    return send(method, path, options);
   }
-  return parse<T>(res);
+  return res;
+}
+
+async function request<T>(method: Method, path: string, options: RequestOptions = {}): Promise<T> {
+  return parse<T>(await sendWithRefresh(method, path, options));
 }
 
 export const api = {
   get: <T>(path: string, options?: Omit<RequestOptions, "body">) =>
     request<T>("GET", path, options),
+  /** GET a paginated list, keeping the `meta` block. */
+  list: async <T>(path: string, options?: Omit<RequestOptions, "body">): Promise<Paginated<T>> => {
+    const envelope = await parseEnvelope<T[]>(await sendWithRefresh("GET", path, options ?? {}));
+    return { items: envelope.data ?? [], meta: envelope.meta as Paginated<T>["meta"] };
+  },
   post: <T>(path: string, body?: unknown, options?: RequestOptions) =>
     request<T>("POST", path, { ...options, body }),
   put: <T>(path: string, body?: unknown, options?: RequestOptions) =>

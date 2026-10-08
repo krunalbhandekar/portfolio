@@ -1,61 +1,80 @@
-import Link from "next/link";
-import { ArrowRight, Download } from "lucide-react";
-import { buttonVariants } from "@/components/ui/button";
-import { StatusBadge } from "@/components/shared/status-badge";
-import { TechChip } from "@/components/shared/tech-chip";
-import { siteConfig } from "@/config/site";
-import { cn } from "@/lib/utils";
+import type { Metadata } from "next";
+import {
+  AboutSection,
+  BentoSection,
+  CareerSection,
+  ExpertiseSection,
+  FeaturedProjectsSection,
+  HeroSection,
+  StatsSection,
+  type SectionProps,
+} from "@/components/home/home-sections";
+import { JsonLd } from "@/components/shared/json-ld";
+import { getHome, getSettings, skillNames } from "@/lib/data/public";
+import type { HomepageSectionKey } from "@/lib/data/types";
+import { pageMetadata, personJsonLd, SITE_URL } from "@/lib/seo";
 
-// Phase 1 placeholder hero. Phase 4 replaces this with CMS-driven content (portfolio.md §3.1).
-const stack = [
-  { slug: "react", label: "React" },
-  { slug: "node-js", label: "Node.js" },
-  { slug: "typescript", label: "TypeScript" },
-  { slug: "mongodb", label: "MongoDB" },
+const SECTIONS: Partial<Record<HomepageSectionKey, (props: SectionProps) => React.ReactNode>> = {
+  hero: HeroSection,
+  stats: StatsSection,
+  bento: BentoSection,
+  featuredProjects: FeaturedProjectsSection,
+  about: AboutSection,
+  career: CareerSection,
+  expertise: ExpertiseSection,
+  // caseStudies, testimonials and blog arrive in Phases 5–6.
+};
+
+const DEFAULT_ORDER: HomepageSectionKey[] = [
+  "hero",
+  "stats",
+  "bento",
+  "featuredProjects",
+  "about",
+  "career",
+  "expertise",
 ];
 
-export default function Home() {
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSettings();
+  return {
+    ...pageMetadata({ path: "/", settings }),
+    title: { absolute: settings.seo.title || `${settings.name} — ${settings.role}` },
+  };
+}
+
+export default async function Home() {
+  const [settings, home] = await Promise.all([getSettings(), getHome()]);
+  const names = skillNames(home.skills);
+  const order = home.homepage.sections.length
+    ? home.homepage.sections.filter((s) => s.visible).map((s) => s.key)
+    : DEFAULT_ORDER;
+  // Hero always renders first, even if hidden/misordered, so the page keeps its h1.
+  const keys = ["hero" as const, ...order.filter((key) => key !== "hero")];
+
+  let n = 0;
   return (
-    <section className="container-page flex flex-1 flex-col justify-center gap-8 py-20 sm:py-28">
-      <StatusBadge label={siteConfig.availability} />
-      <div className="flex max-w-3xl flex-col gap-5">
-        <p className="font-mono text-sm text-muted-foreground">
-          <span className="text-brand-text">$</span> whoami
-        </p>
-        <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-6xl">
-          {siteConfig.name}
-          <span className="block text-muted-foreground">{siteConfig.role}</span>
-        </h1>
-        <p className="max-w-2xl text-lg text-pretty text-muted-foreground">
-          My engineering journey: the systems I&apos;ve built, the problems I&apos;ve solved, the
-          decisions I&apos;ve made, and the impact of my work.
-        </p>
-      </div>
-      <ul className="flex flex-wrap gap-2" aria-label="Primary tech stack">
-        {stack.map((tech) => (
-          <li key={tech.slug}>
-            <TechChip slug={tech.slug} label={tech.label} />
-          </li>
-        ))}
-      </ul>
-      <div className="flex flex-wrap gap-3">
-        <Link href="/projects" className={cn(buttonVariants({ size: "lg" }), "h-10 px-4")}>
-          View Projects <ArrowRight aria-hidden="true" />
-        </Link>
-        <Link
-          href="/resume"
-          prefetch={false}
-          className={cn(buttonVariants({ variant: "outline", size: "lg" }), "h-10 px-4")}
-        >
-          <Download aria-hidden="true" /> Download Resume
-        </Link>
-        <Link
-          href="/contact"
-          className={cn(buttonVariants({ variant: "ghost", size: "lg" }), "h-10 px-4")}
-        >
-          Contact Me
-        </Link>
-      </div>
-    </section>
+    <>
+      <JsonLd
+        data={[
+          personJsonLd(
+            settings,
+            home.skills.map((s) => s.name),
+          ),
+          {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            name: settings.name,
+            url: SITE_URL,
+          },
+        ]}
+      />
+      {keys.map((key) => {
+        const Section = SECTIONS[key];
+        if (!Section) return null;
+        const index = key === "hero" ? "" : String(++n).padStart(2, "0");
+        return <Section key={key} home={home} settings={settings} names={names} index={index} />;
+      })}
+    </>
   );
 }

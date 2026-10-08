@@ -1,8 +1,9 @@
 /**
  * Layout chrome configuration.
  *
- * Phase 1 placeholder values: from Phase 4 the name, socials, email and availability
- * come from the `siteSettings` API (portfolio.md §5.2). Navigation links stay here.
+ * Fallback values only: the live name, role, socials, email and availability come from Site
+ * Settings in the admin (`getSettings()`); these are used if the API is unreachable.
+ * Navigation links stay here.
  */
 export const siteConfig = {
   name: "Krunal Bhandekar",
@@ -17,18 +18,16 @@ export const siteConfig = {
   ],
 } as const;
 
+/** Only pages that exist. Case Studies, Engineering and Blog are added in Phases 5–6. */
 export const mainNav = [
   { label: "Projects", href: "/projects" },
-  { label: "Case Studies", href: "/case-studies" },
-  { label: "Engineering", href: "/engineering" },
+  { label: "Experience", href: "/experience" },
+  { label: "Skills", href: "/skills" },
   { label: "About", href: "/about" },
-  { label: "Blog", href: "/blog" },
   { label: "Contact", href: "/contact" },
 ] as const;
 
 export const footerResources = [
   { label: "Resume", href: "/resume" },
-  { label: "Now", href: "/now" },
-  { label: "Uses", href: "/uses" },
-  { label: "RSS", href: "/rss.xml" },
+  { label: "Sitemap", href: "/sitemap.xml" },
 ] as const;

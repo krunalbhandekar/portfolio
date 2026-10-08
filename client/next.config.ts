@@ -18,8 +18,14 @@ const nextConfig: NextConfig = {
     },
   },
   images: {
-    // Google profile pictures (admin avatar).
-    remotePatterns: [{ protocol: "https", hostname: "lh3.googleusercontent.com" }],
+    // Cloudinary resizes/formats every image (portfolio.md §7.4); see src/lib/image-loader.ts.
+    loader: "custom",
+    loaderFile: "./src/lib/image-loader.ts",
+    // Google profile pictures (admin avatar) and Cloudinary media.
+    remotePatterns: [
+      { protocol: "https", hostname: "lh3.googleusercontent.com" },
+      { protocol: "https", hostname: "res.cloudinary.com" },
+    ],
   },
   async rewrites() {
     if (!apiUrl) return [];

@@ -46,7 +46,7 @@
 |---|---|---|
 | Frontend (`client/`) | **Next.js (App Router) + TypeScript** | SSG/ISR for SEO, Metadata API, sitemap, OG image generation |
 | Styling | Tailwind CSS + shadcn/ui | Fast, consistent, small bundle, modern look out of the box |
-| Motion | Motion (Framer Motion) + View Transitions | Subtle, performant animations |
+| Motion | CSS transitions + IntersectionObserver + native View Transitions API | Subtle animations with no animation library (Motion was dropped in Phase 4 for bundle size) |
 | Fonts | Geist Sans + Geist Mono (via `next/font`) | Clean modern developer aesthetic |
 | Icons | lucide-react + simple-icons (tech logos) | |
 | Data fetching (admin) | TanStack Query | Caching, mutations, optimistic updates in the CMS |
@@ -432,7 +432,6 @@ CLOUDINARY_URL=cloudinary://<api_key>:<api_secret>@<cloud_name>
 RESEND_API_KEY=
 CONTACT_NOTIFY_EMAIL=krunalbhandekar10@gmail.com
 GITHUB_TOKEN=
-TURNSTILE_SECRET_KEY=
 SENTRY_DSN=
 ```
 
@@ -444,7 +443,6 @@ API_URL=https://<render-service>.onrender.com   # server-only; /api/v1 proxy tar
 # NEXT_PUBLIC_API_URL=https://api.krunalbhandekar.dev/api/v1   # only for direct mode
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=
-NEXT_PUBLIC_TURNSTILE_SITE_KEY=
 REVALIDATE_SECRET=
 NEXT_PUBLIC_SENTRY_DSN=
 ```
@@ -626,7 +624,7 @@ GET  /github
 GET  /resume/:id?/download       # tracks the download, redirects to the Cloudinary URL
 GET  /search?q=                  # command palette
 GET  /sitemap-data
-POST /contact                     # rate-limited, Turnstile + honeypot, emails krunalbhandekar10@gmail.com
+POST /contact                     # rate-limited, honeypot, emails krunalbhandekar10@gmail.com
 POST /events                      # lightweight analytics
 ```
 
@@ -639,28 +637,41 @@ POST /auth/logout
 GET  /auth/me                     # used by the footer to show "Admin" vs "Dashboard"
 ```
 
-### Admin (requires `requireAdmin`)
+### Admin (requires `requireAdmin` + CSRF header)
+
+Collections (`experiences`, `projects`, `skills`, `capabilities`, `resumes`; later phases add more) share one router (`server/src/lib/crud/crud-router.ts`):
 
 ```
-GET|POST         /admin/:resource
-GET|PATCH|DELETE /admin/:resource/:id
-PATCH            /admin/:resource/reorder
-POST             /admin/:resource/:id/publish
-POST             /admin/:resource/:id/unpublish
-GET              /admin/:resource/:id/revisions
-POST             /admin/:resource/:id/revisions/:revId/restore
-PUT              /admin/settings
-POST             /admin/media/signature          # Cloudinary signed upload params
-POST             /admin/media                    # save metadata after a direct upload
-DELETE           /admin/media/:id                # Cloudinary destroy + DB delete (blocked if in use)
-GET              /admin/media/usage              # Cloudinary credit usage
-GET              /admin/messages
-PATCH            /admin/messages/:id
-GET              /admin/analytics
-POST             /admin/github/refresh
-GET              /admin/export
-POST             /admin/import
+GET    /admin/:resource            ?page&limit&q&status&sort   (list + meta)
+GET    /admin/:resource/options    id/label/slug/status for pickers
+GET    /admin/:resource/:id
+POST   /admin/:resource            create (always a draft)
+PUT    /admin/:resource/:id        full-document update (forms send every field)
+DELETE /admin/:resource/:id
+PATCH  /admin/:resource/reorder    { ids: [...] } → order = index
+POST   /admin/:resource/:id/publish
+POST   /admin/:resource/:id/unpublish
 ```
+
+Singletons (`settings`, `homepage`, `about`) — `server/src/lib/crud/singleton-router.ts`:
+
+```
+GET /admin/:singleton              document or defaults
+PUT /admin/:singleton              replace
+```
+
+Media:
+
+```
+POST   /admin/media/signature      { folder } → signed direct-upload params
+POST   /admin/media                register an upload (details fetched from Cloudinary)
+GET    /admin/media                ?folder&kind=image|pdf&q&page&limit
+GET    /admin/media/folders
+PATCH  /admin/media/:id            { alt }
+DELETE /admin/media/:id            409 MEDIA_IN_USE while referenced
+```
+
+Later phases: revisions/restore, messages, analytics, GitHub refresh, export/import, media usage.
 
 ### Jobs (called by cron-job.org, header `x-jobs-secret: JOBS_SECRET`)
 
@@ -784,7 +795,7 @@ No `.github/workflows/`, no `Dockerfile` and no `docker-compose.yml`: Vercel and
 - Input validation and sanitization (Zod + sanitized rich-text HTML)
 - `express-mongo-sanitize` against NoSQL injection
 - Signed Cloudinary uploads only (no unsigned upload preset); format and size restrictions
-- Contact form: honeypot field + Cloudflare Turnstile + rate limit
+- Contact form: honeypot field + rate limit (5/hour/IP). Cloudflare Turnstile was removed by decision; add a CAPTCHA later only if spam gets through.
 - Secrets only in Vercel/Render env vars, never committed; `.env.example` files contain no values
 - Atlas network access: Render's free plan has no static outbound IP, so allow `0.0.0.0/0` with a strong, least-privilege DB user
 - Content Security Policy headers on the client (allow `res.cloudinary.com`, Google Identity, YouTube/Loom)
@@ -916,7 +927,7 @@ Configured in the cron-job.org dashboard. Each job sends a `POST` with the `x-jo
 - [x] `client/`: Next.js (App Router, `src/`), TypeScript strict, Tailwind, shadcn/ui init, ESLint + Prettier, `.env.example`
 - [x] `server/`: Express + TypeScript, `tsx` for dev, `tsc` build to `dist/`, ESLint + Prettier, `.env.example`
 - [x] `server`: env loader validated with Zod (fails fast on missing vars), `GET /api/v1/health`
-- [ ] Accounts: MongoDB Atlas M0 (Singapore), Cloudinary (enable PDF delivery), Google Cloud OAuth client, Resend, Cloudflare Turnstile, Sentry, UptimeRobot, cron-job.org
+- [ ] Accounts: MongoDB Atlas M0 (Singapore), Cloudinary (enable PDF delivery), Google Cloud OAuth client, Resend, Sentry, UptimeRobot, cron-job.org
 - [ ] Vercel project (Root Directory `client`) and Render web service (Root Directory `server`, Node runtime) connected to GitHub with auto-deploy on `main`
 - [ ] Domain decided; DNS: root → Vercel, `api.` → Render (or Next.js rewrite fallback until the domain is bought)
 
@@ -1013,27 +1024,39 @@ Configured in the cron-job.org dashboard. Each job sends a `POST` with the `x-jo
 **Depends on:** Phase 2. **Spec:** [5](#5-admin-panel-cms), [7](#7-media-storage--cloudinary-free-plan), [9](#9-data-model-mongodb), [10](#10-api-design)
 
 **Server**
-- [ ] Cloudinary service (server-side keys only)
-- [ ] Media module: `POST /admin/media/signature`, `POST /admin/media`, `GET /admin/media`, `PATCH /admin/media/:id` (alt text), `DELETE /admin/media/:id` (Cloudinary destroy, blocked when `usedIn` is not empty)
-- [ ] `usedIn` tracking: content services update media references on save/delete
-- [ ] Generic admin CRUD factory: list (pagination, search), get, create, update, delete, reorder, publish/unpublish
-- [ ] Models + admin routes: `siteSettings` (singleton), `about` (singleton), `experiences`, `projects`, `skills`, `capabilities`, `resumes`
-- [ ] Slug generation + uniqueness check; text index on `projects`
-- [ ] Every write triggers revalidation of affected paths
-- [ ] Seed script (`server/scripts/seed.ts`): admin + starter settings
+- [x] Cloudinary service (server-side keys only)
+- [x] Media module: `POST /admin/media/signature`, `POST /admin/media`, `GET /admin/media`, `PATCH /admin/media/:id` (alt text), `DELETE /admin/media/:id` (Cloudinary destroy, blocked when `usedIn` is not empty)
+- [x] `usedIn` tracking: content services update media references on save/delete
+- [x] Generic admin CRUD factory: list (pagination, search), get, create, update, delete, reorder, publish/unpublish
+- [x] Models + admin routes: `siteSettings` (singleton), `about` (singleton), `experiences`, `projects`, `skills`, `capabilities`, `resumes`
+- [x] Slug generation + uniqueness check; text index on `projects`
+- [x] Every write triggers revalidation of affected paths
+- [x] Seed script (`server/scripts/seed.ts`): admin + starter settings
 
 **Client — admin**
-- [ ] Reusable admin kit: DataTable (search, sort, pagination), form layout, field components (text, textarea, select, tags, date, switch, URL, repeater/array field, rich text with Tiptap), drag-and-drop reorder, confirm dialog, toast, unsaved-changes guard
-- [ ] **MediaPicker / uploader:** client-side compression → signed direct upload → metadata save; required alt text; folder chosen by context (`portfolio/projects/<slug>` etc.)
-- [ ] Media Library page (grid, filter by folder, edit alt, delete with "in use" warning)
-- [ ] Modules: **Site Settings** (incl. accent color, availability, socials), **Homepage** (hero, CTAs, bento cards, stats, section order/visibility, featured selection), **About**, **Experience**, **Projects** (all detail fields, gallery, challenges, decisions, metrics, confidential flag), **Skills & Capabilities**, **Resume** (multiple PDFs, set default)
-- [ ] Publish / unpublish toggle on every content type
+- [x] Reusable admin kit: DataTable (search, sort, pagination), form layout, field components (text, textarea, select, tags, date, switch, URL, repeater/array field, rich text with Tiptap), drag-and-drop reorder, confirm dialog, toast, unsaved-changes guard
+- [x] **MediaPicker / uploader:** client-side compression → signed direct upload → metadata save; required alt text; folder chosen by context (`portfolio/projects/<slug>` etc.)
+- [x] Media Library page (grid, filter by folder, edit alt, delete with "in use" warning)
+- [x] Modules: **Site Settings** (incl. accent color, availability, socials), **Homepage** (hero, CTAs, bento cards, stats, section order/visibility, featured selection), **About**, **Experience**, **Projects** (all detail fields, gallery, challenges, decisions, metrics, confidential flag), **Skills & Capabilities**, **Resume** (multiple PDFs, set default)
+- [x] Publish / unpublish toggle on every content type
 
 **Done when**
-- [ ] A screenshot uploads directly to Cloudinary (never passes through Render) and appears in the media library
-- [ ] Content cannot be saved with an image missing alt text
-- [ ] Deleting media in use is blocked
-- [ ] All core content for the real portfolio can be entered from the admin panel
+- [x] A screenshot uploads directly to Cloudinary (never passes through Render) and appears in the media library
+- [x] Content cannot be saved with an image missing alt text
+- [x] Deleting media in use is blocked
+- [ ] All core content for the real portfolio can be entered from the admin panel *(your content entry)*
+
+**Implementation notes**
+- **Validation lives on the server.** Client forms don't duplicate the Zod schemas; a 400's `details` (`[{ path: "avatar.alt", message }]`) are mapped onto the matching fields (`components/admin/resources/form-utils.ts`). Native `required` + alt-at-upload cover the obvious cases before submit.
+- Updates are `PUT` with full-document semantics (forms send every field; empty values clear). Status and order only change through publish/unpublish/reorder.
+- Media references are re-resolved from the library on every save (clients can't point at arbitrary URLs), and `usedIn` is resynced per document (`media/media-usage.ts`). Usage entries use `resource` (not `collection`, a reserved Mongoose path).
+- Signed uploads are restricted to `portfolio/...` folders and `jpg,jpeg,png,webp,gif,avif,pdf`; registration re-checks folder, format and the 10 MB limit via the Cloudinary Admin API and deletes violating uploads.
+- Rich text is sanitised server-side with `sanitize-html` (allow-list; scripts, handlers and `javascript:` links are stripped).
+- Homepage content is its own `homepage` singleton (hero, CTAs, stats, bento, expertise, section order/visibility, featured projects), separate from `siteSettings`.
+- Admin URLs: singletons at `/admin/settings|homepage|about`, collections via `/admin/[resource]` and `/admin/[resource]/[id]` (`new` to create), registered in `components/admin/modules/registry.ts`. Capabilities has its own sidebar entry.
+- Revalidation tags: `settings`, `homepage`, `about`, `experiences`, `projects`, `project:<slug>`, `skills`, `skill:<slug>`, `resumes`. Phase 4 fetchers must use the same tags.
+- `npm run seed` (server) creates the admin, settings, homepage, about and 18 starter skills; it never overwrites existing data.
+- `shadcn` moved to devDependencies (CLI only; its transitive deps had advisories). `sanitize-html` pinned to a patched release.
 
 **Not in this phase:** public pages consuming the data, case studies, blog, drafts preview.
 
@@ -1045,22 +1068,22 @@ Configured in the cron-job.org dashboard. Each job sends a `POST` with the `x-jo
 **Depends on:** Phase 3. **Spec:** [3](#3-public-site--pages--features), [8](#8-seo-strategy), [10](#10-api-design), [13](#13-deployment--vercel--render)
 
 **Server**
-- [ ] Public routes: `GET /settings`, `/home`, `/about`, `/experiences`, `/projects` (filters: category, tech, type, q, featured), `/projects/:slug`, `/skills`, `/resume/:id?/download` (redirect to Cloudinary), `/sitemap-data`
-- [ ] Contact module: `POST /contact` with Zod, honeypot, Turnstile verify, rate limit; save to `messages`; email to `CONTACT_NOTIFY_EMAIL` via Resend
-- [ ] Indexes from [9](#indexes) for these collections
+- [x] Public routes: `GET /settings`, `/home`, `/about`, `/experiences`, `/projects` (filters: category, tech, type, q, featured), `/projects/:slug`, `/skills`, `/resume/:id?/download` (redirect to Cloudinary), `/sitemap-data`
+- [x] Contact module: `POST /contact` with Zod, honeypot, rate limit; save to `messages`; email to `CONTACT_NOTIFY_EMAIL` via Resend
+- [x] Indexes from [9](#indexes) for these collections
 
 **Client — public**
-- [ ] Data layer: server-side fetchers with tags; ISR with on-demand revalidation; build does not fail if Render is asleep (retry, `dynamicParams`)
-- [ ] Accent color, name, socials and availability applied from site settings
-- [ ] **Home:** hero (status badge, stack chips, CTAs), bento grid, featured projects, short about, career preview, expertise summary; sections ordered/hidden per settings
-- [ ] **About**, **Experience timeline**
-- [ ] **Projects list:** grid, filters, search, sort, professional/personal badge, animated filter layout
-- [ ] **Project detail:** overview, metrics, problem/solution, contribution, architecture (static image/Mermaid), features, challenges, decisions, gallery lightbox, video facade, links, related + next/prev
-- [ ] **Skills** grouped by category with links to projects
-- [ ] **Resume:** download button + print-friendly `/resume` page
-- [ ] **Contact** form with success/error and cold-start-tolerant "sending…" state
-- [ ] SEO: Metadata API per page, canonical, dynamic OG images, `sitemap.ts`, `robots.ts`, JSON-LD `Person`, `WebSite`, `BreadcrumbList`, `CreativeWork`
-- [ ] Analytics: Vercel Web Analytics or Umami
+- [x] Data layer: server-side fetchers with tags; ISR with on-demand revalidation; build does not fail if Render is asleep (retry, `dynamicParams`)
+- [x] Accent color, name, socials and availability applied from site settings
+- [x] **Home:** hero (status badge, stack chips, CTAs), bento grid, featured projects, short about, career preview, expertise summary; sections ordered/hidden per settings
+- [x] **About**, **Experience timeline**
+- [x] **Projects list:** grid, filters, search, sort, professional/personal badge, animated filter layout
+- [x] **Project detail:** overview, metrics, problem/solution, contribution, architecture (static image/Mermaid), features, challenges, decisions, gallery lightbox, video facade, links, related + next/prev
+- [x] **Skills** grouped by category with links to projects
+- [x] **Resume:** download button + print-friendly `/resume` page
+- [x] **Contact** form with success/error and cold-start-tolerant "sending…" state
+- [x] SEO: Metadata API per page, canonical, dynamic OG images, `sitemap.ts`, `robots.ts`, JSON-LD `Person`, `WebSite`, `BreadcrumbList`, `CreativeWork`
+- [x] Analytics: Vercel Web Analytics or Umami
 
 **Launch tasks**
 - [ ] Custom domains live on Vercel and Render, HTTPS, `www` redirect
@@ -1069,11 +1092,24 @@ Configured in the cron-job.org dashboard. Each job sends a `POST` with the `x-jo
 - [ ] Sitemap submitted to Google Search Console
 
 **Done when**
-- [ ] Editing a project in admin updates the live page within ~10 seconds without a redeploy
-- [ ] Public pages load instantly even while the Render server is asleep
+- [x] Editing a project in admin updates the live page within ~10 seconds without a redeploy
+- [x] Public pages load instantly even while the Render server is asleep
 - [ ] Contact submission stores the message and emails krunalbhandekar10@gmail.com
 - [ ] Lighthouse ≥ 95 (all categories) on Home, Projects and a Project detail page, on mobile
 - [ ] Rich Results Test validates the JSON-LD
+
+**Implementation notes**
+- **Data layer** (`client/src/lib/data/public.ts`): every fetcher is `use cache` + `cacheTag()` (tags match the server's revalidation tags). Success → `cacheLife("max")`; API unreachable → fallback data with `cacheLife("minutes")`, so builds never fail on Render and the site self-heals. Responses are normalised so missing arrays/objects never crash a page.
+- Measured: admin edit → live project page updated in **1.4 s**; with the API stopped, all public pages still served in <15 ms.
+- `/projects/[slug]` prerenders every published slug (placeholder param when none, per Cache Components); new projects render on first visit. Unknown slugs show the not-found UI with an injected `noindex` (status 200, since it's resolved after streaming starts).
+- Server public API also has `GET /resume` and `POST /resume/:id/downloaded`: the download button links straight to Cloudinary (`fl_attachment`) so it's instant while Render sleeps, and counts via a beacon.
+- Contact: Zod + honeypot + 5/hour/IP (no CAPTCHA: Cloudflare Turnstile was removed); stored in `messages`; emailed via Resend's HTTP API (`RESEND_FROM`, default `onboarding@resend.dev`, which only delivers to the Resend account owner). Email failure never loses the message.
+- Images use a global Cloudinary loader (`src/lib/image-loader.ts`); LCP images use `preload` + `fetchPriority="high"` (`priority` is deprecated in Next 16).
+- Performance work: scroll reveals are IntersectionObserver + CSS (no animation library); project-filter animation uses the native **View Transitions API**; project cards are server-rendered and passed into the client filter; lightbox viewer and mobile menu load on demand. `motion` was removed as a dependency. First-load JS ≈ 187 KB.
+- `experimental.inlineCss` was tried and rejected: CSS got embedded twice (HTML 78 KB gzipped) and scores dropped.
+- Local mobile Lighthouse (simulated): Home 94–96, Projects 94–95, Project detail 94–95; Accessibility / Best Practices / SEO 100 on all three. Re-check on the deployed site with PageSpeed Insights.
+- Nav shows only pages that exist (Projects, Experience, Skills, About, Contact); the ⌘K trigger is hidden until Phase 6.
+- Sentry was not added: the Next.js SDK costs ~70 KB of client JS on every page, which would push mobile Performance under 95. Revisit with a lazy-loaded/server-only setup later.
 
 **Not in this phase:** case studies, engineering section, blog, testimonials, command palette.
 

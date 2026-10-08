@@ -1,6 +1,20 @@
 import { cn } from "@/lib/utils";
+import type { Settings } from "@/lib/data/types";
 
-export function StatusBadge({ label, className }: { label: string; className?: string }) {
+const DEFAULT_LABELS: Record<Settings["availability"]["status"], string> = {
+  open: "Available for opportunities",
+  freelance: "Available for freelance",
+  "not-looking": "Not looking right now",
+};
+
+export function StatusBadge({
+  availability,
+  className,
+}: {
+  availability: Settings["availability"];
+  className?: string;
+}) {
+  const active = availability.status !== "not-looking";
   return (
     <span
       className={cn(
@@ -9,10 +23,17 @@ export function StatusBadge({ label, className }: { label: string; className?: s
       )}
     >
       <span className="relative flex size-2" aria-hidden="true">
-        <span className="absolute inline-flex size-full animate-ping rounded-full bg-brand opacity-60" />
-        <span className="relative inline-flex size-2 rounded-full bg-brand" />
+        {active ? (
+          <span className="absolute inline-flex size-full animate-ping rounded-full bg-brand opacity-60" />
+        ) : null}
+        <span
+          className={cn(
+            "relative inline-flex size-2 rounded-full",
+            active ? "bg-brand" : "bg-muted-foreground",
+          )}
+        />
       </span>
-      {label}
+      {availability.label || DEFAULT_LABELS[availability.status]}
     </span>
   );
 }

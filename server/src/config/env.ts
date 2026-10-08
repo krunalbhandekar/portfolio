@@ -32,13 +32,14 @@ const envSchema = z.object({
     .regex(
       /^cloudinary:\/\/[^:]+:[^@]+@.+$/,
       "Expected cloudinary://<api_key>:<api_secret>@<cloud_name>",
-    )
-    .optional(),
+    ),
 
   // Phase 4 — contact & monitoring
   RESEND_API_KEY: laterPhase,
+  /** Sender for notification emails. onboarding@resend.dev works without a verified domain,
+   *  but can only deliver to the Resend account owner's address. */
+  RESEND_FROM: z.string().default("Portfolio <onboarding@resend.dev>"),
   CONTACT_NOTIFY_EMAIL: z.email().default("krunalbhandekar10@gmail.com"),
-  TURNSTILE_SECRET_KEY: laterPhase,
   SENTRY_DSN: laterPhase,
 
   // Phase 6 — GitHub & scheduled jobs

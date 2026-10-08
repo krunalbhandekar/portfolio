@@ -20,8 +20,9 @@ Both apps auto-deploy from GitHub on push to `main`. There are no CI `.yml` file
 # API → http://localhost:5050/api/v1/health  (needs MongoDB: Atlas URI or a local mongod)
 # Port 5050, not 5000: macOS AirPlay Receiver occupies 5000.
 cd server
-cp .env.example .env        # fill MONGODB_URI, GOOGLE_CLIENT_ID and the three secrets
+cp .env.example .env        # fill MONGODB_URI, GOOGLE_CLIENT_ID, CLOUDINARY_URL and the three secrets
 npm install
+npm run seed                # once: admin, site settings, homepage, about, starter skills (idempotent)
 npm run dev
 
 # Web → http://localhost:3000  (proxies /api/v1/* to API_URL, default http://localhost:5050)
@@ -30,6 +31,8 @@ cp .env.example .env.local  # REVALIDATE_SECRET must match the server's
 npm install
 npm run dev
 # Admin: footer "Admin" link → /admin/login (only krunalbhandekar10@gmail.com can sign in)
+# Public pages are static: content changes appear after an admin save (on-demand revalidation).
+# `npm run build` fetches content from API_URL; if the API is unreachable it builds with fallbacks.
 ```
 
 ## Scripts (both folders)
@@ -52,4 +55,5 @@ npm run dev
 - Start command: `npm start`
 - Health check path: `/api/v1/health`
 - Region: Singapore
-- Env vars are listed in `server/.env.example`. Required: `NODE_ENV=production`, `CLIENT_URL` (the Vercel URL), `MONGODB_URI`, `GOOGLE_CLIENT_ID`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `REVALIDATE_SECRET`.
+- Env vars are listed in `server/.env.example`. Required: `NODE_ENV=production`, `CLIENT_URL` (the Vercel URL), `MONGODB_URI`, `GOOGLE_CLIENT_ID`, `CLOUDINARY_URL`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `REVALIDATE_SECRET`.
+- Seed production once from your machine: `MONGODB_URI=<atlas-uri> npm run seed` (in `server/`).

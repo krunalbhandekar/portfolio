@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { cacheLife } from "next/cache";
 import { CopyButton } from "@/components/shared/copy-button";
-import { SocialIcon } from "@/components/shared/social-icon";
+import { SocialIcon, isSocialIcon } from "@/components/shared/social-icon";
 import { StatusBadge } from "@/components/shared/status-badge";
+import { footerResources, mainNav } from "@/config/site";
+import type { Settings } from "@/lib/data/types";
 import { AdminLink } from "./admin-link";
-import { footerResources, mainNav, siteConfig } from "@/config/site";
 
 async function getCurrentYear() {
   "use cache";
@@ -23,24 +24,26 @@ function FooterColumn({ title, children }: { title: string; children: React.Reac
 
 const linkClass = "text-muted-foreground transition-colors hover:text-foreground";
 
-export async function Footer() {
+export async function Footer({ settings }: { settings: Settings }) {
   const year = await getCurrentYear();
 
   return (
-    <footer className="mt-24 border-t">
+    <footer className="mt-24 border-t print:hidden">
       <div className="container-page grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div className="flex flex-col items-start gap-4">
           <div>
-            <p className="font-medium">{siteConfig.name}</p>
-            <p className="text-sm text-muted-foreground">{siteConfig.role}</p>
+            <p className="font-medium">{settings.name}</p>
+            <p className="text-sm text-muted-foreground">{settings.role}</p>
           </div>
-          <StatusBadge label={siteConfig.availability} />
-          <div className="flex items-center gap-2 font-mono text-xs">
-            <a href={`mailto:${siteConfig.email}`} className={linkClass}>
-              {siteConfig.email}
-            </a>
-            <CopyButton value={siteConfig.email} label="Copy email address" />
-          </div>
+          <StatusBadge availability={settings.availability} />
+          {settings.email ? (
+            <div className="flex items-center gap-2 font-mono text-xs">
+              <a href={`mailto:${settings.email}`} className={linkClass}>
+                {settings.email}
+              </a>
+              <CopyButton value={settings.email} label="Copy email address" />
+            </div>
+          ) : null}
         </div>
 
         <FooterColumn title="Navigate">
@@ -54,15 +57,17 @@ export async function Footer() {
         </FooterColumn>
 
         <FooterColumn title="Connect">
-          {siteConfig.socials.map((social) => (
-            <li key={social.label}>
+          {settings.socials.map((social) => (
+            <li key={social.url}>
               <a
-                href={social.href}
+                href={social.url}
                 target="_blank"
-                rel="noopener noreferrer"
+                rel="noopener noreferrer me"
                 className={`${linkClass} inline-flex items-center gap-2`}
               >
-                <SocialIcon name={social.icon} className="size-3.5" />
+                {isSocialIcon(social.platform) ? (
+                  <SocialIcon name={social.platform} className="size-3.5" />
+                ) : null}
                 {social.label}
               </a>
             </li>
@@ -83,7 +88,7 @@ export async function Footer() {
       <div className="border-t">
         <div className="container-page flex flex-col gap-3 py-5 font-mono text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <p>
-            Built with Next.js · Deployed on Vercel &amp; Render · © {year} {siteConfig.name}
+            Built with Next.js · Deployed on Vercel &amp; Render · © {year} {settings.name}
           </p>
           {/* Admin entry point (portfolio.md §3.2): deliberately low-key, never in the main nav. */}
           <AdminLink className={`${linkClass} self-start sm:self-auto`} />
