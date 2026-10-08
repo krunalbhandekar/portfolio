@@ -12,9 +12,8 @@ export const siteConfig = {
   availability: "Available for opportunities",
   location: "Pune, India",
   socials: [
-    { label: "GitHub", href: "https://github.com/", icon: "github" },
-    { label: "LinkedIn", href: "https://www.linkedin.com/", icon: "linkedin" },
-    { label: "X", href: "https://x.com/", icon: "x" },
+    { label: "GitHub", href: "https://github.com/krunalbhandekar", icon: "github" },
+    { label: "LinkedIn", href: "https://www.linkedin.com/in/krunal-bhandekar", icon: "linkedin" },
   ],
 } as const;
 
