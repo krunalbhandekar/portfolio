@@ -396,8 +396,10 @@ The refresh endpoint rotates tokens; logout clears cookies and revokes the refre
 
 `*.vercel.app` and `*.onrender.com` are different sites, and browsers block third-party cookies between them. Use one of these:
 
-- **Recommended:** a custom domain for both, e.g. `krunalbhandekar.dev` (Vercel) and `api.krunalbhandekar.dev` (Render, which supports custom domains on the free plan). The cookies are then first-party, with `Domain=.krunalbhandekar.dev; SameSite=Lax; Secure`.
-- **Fallback (no custom domain yet):** proxy `/api/v1/*` through Next.js rewrites on Vercel to the Render URL, so the browser only ever talks to the Vercel origin.
+- **Implemented (default):** the browser calls same-origin `/api/v1/*`, and a Next.js rewrite on Vercel proxies it to the Render URL (`API_URL`). Cookies are host-only, first-party on the site's domain, and work with or without a custom domain. Leave `COOKIE_DOMAIN` unset.
+- **Optional later:** with a custom domain for both (e.g. `krunalbhandekar.dev` + `api.krunalbhandekar.dev`), the browser can call the API directly: set `NEXT_PUBLIC_API_URL` on the client and `COOKIE_DOMAIN=.krunalbhandekar.dev` on the server.
+
+Cookies set by the API: `pf_at` (access JWT, httpOnly, path `/`, 15 min), `pf_rt` (refresh token, httpOnly, path `/api/v1/auth`, 7 days) and `pf_session=1` (non-secret, JS-readable hint used only for the footer "Admin"/"Dashboard" link).
 
 ### 6.4 Security details
 
@@ -417,7 +419,9 @@ NODE_ENV=production
 PORT=10000
 MONGODB_URI=
 CLIENT_URL=https://krunalbhandekar.dev
-COOKIE_DOMAIN=.krunalbhandekar.dev
+CORS_ORIGINS=                # optional extra origins, comma-separated
+TRUST_PROXY_HOPS=1
+COOKIE_DOMAIN=               # empty with the /api/v1 proxy (default)
 GOOGLE_CLIENT_ID=
 ADMIN_EMAIL=krunalbhandekar10@gmail.com
 JWT_ACCESS_SECRET=
@@ -436,7 +440,8 @@ SENTRY_DSN=
 
 ```
 NEXT_PUBLIC_SITE_URL=https://krunalbhandekar.dev
-NEXT_PUBLIC_API_URL=https://api.krunalbhandekar.dev/api/v1
+API_URL=https://<render-service>.onrender.com   # server-only; /api/v1 proxy target
+# NEXT_PUBLIC_API_URL=https://api.krunalbhandekar.dev/api/v1   # only for direct mode
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=
 NEXT_PUBLIC_TURNSTILE_SITE_KEY=
@@ -839,7 +844,7 @@ Configured in the cron-job.org dashboard. Each job sends a `POST` with the `x-jo
 
 ### 13.4 Environments & monitoring
 
-- Environments: local (client `:3000`, server `:5000`, a separate Atlas dev database, or MongoDB installed locally (no Docker)), Vercel preview, production
+- Environments: local (client `:3000`, server `:5050` (not 5000: macOS AirPlay uses it), a separate Atlas dev database, or MongoDB installed locally (no Docker)), Vercel preview, production
 - Uptime monitoring: UptimeRobot / Better Stack
 - Error tracking: Sentry (free) on client and server
 - This pipeline can itself be showcased in the Engineering → DevOps section
@@ -962,32 +967,41 @@ Configured in the cron-job.org dashboard. Each job sends a `POST` with the `x-jo
 **Depends on:** Phase 1. **Spec:** [5](#5-admin-panel-cms), [6](#6-authentication--google-oauth-only), [9](#9-data-model-mongodb), [10](#10-api-design), [12](#12-performance-accessibility--security)
 
 **Server**
-- [ ] MongoDB connection (Mongoose) with graceful shutdown
-- [ ] Middlewares: Helmet, CORS (client domain only, credentials), cookie-parser, JSON limit, `express-mongo-sanitize`, rate limiter, request ID, pino logging, central error handler, 404 handler
-- [ ] Shared helpers: response builder `{ success, data, error, meta }`, `validate(zodSchema)`, `asyncHandler`, pagination util
-- [ ] Common content fields plugin (status, publishAt, order, seo, updatedBy, timestamps)
-- [ ] Models: `admins`, `refreshTokens`, `auditLogs`
-- [ ] Auth module: `POST /auth/google`, `POST /auth/refresh`, `POST /auth/logout`, `GET /auth/me`
+- [x] MongoDB connection (Mongoose) with graceful shutdown
+- [x] Middlewares: Helmet, CORS (client domain only, credentials), cookie-parser, JSON limit, `express-mongo-sanitize`, rate limiter, request ID, pino logging, central error handler, 404 handler
+- [x] Shared helpers: response builder `{ success, data, error, meta }`, `validate(zodSchema)`, `asyncHandler`, pagination util
+- [x] Common content fields plugin (status, publishAt, order, seo, updatedBy, timestamps)
+- [x] Models: `admins`, `refreshTokens`, `auditLogs`
+- [x] Auth module: `POST /auth/google`, `POST /auth/refresh`, `POST /auth/logout`, `GET /auth/me`
   - verify Google ID token (audience), `email_verified`, **email must equal `ADMIN_EMAIL` (krunalbhandekar10@gmail.com)** else 403
   - access JWT (15 min) + rotating hashed refresh token (7 days) in httpOnly Secure SameSite=Lax cookies with `COOKIE_DOMAIN`
   - log every login attempt (success / rejected) to `auditLogs`
-- [ ] `requireAdmin` middleware + CSRF custom-header check on state-changing admin routes
-- [ ] Revalidation service: `revalidate(paths[], tags[])` → `POST {CLIENT_URL}/api/revalidate` (used from Phase 3 on)
+- [x] `requireAdmin` middleware + CSRF custom-header check on state-changing admin routes
+- [x] Revalidation service: `revalidate(paths[], tags[])` → `POST {CLIENT_URL}/api/revalidate` (used from Phase 3 on)
 
 **Client — admin**
-- [ ] `/admin/login`: "Sign in with Google" (Google Identity Services), error state for rejected accounts
-- [ ] Auth context using `/auth/me`; silent refresh on 401; logout
-- [ ] Protected admin layout: sidebar (module list from [5.2](#52-modules), unbuilt modules hidden), top bar with avatar + logout, `noindex`
-- [ ] Empty Dashboard page
-- [ ] Footer link switches "Admin" → "Dashboard" when a session exists
-- [ ] API client (`lib/api.ts`): base URL, `credentials: 'include'`, CSRF header, typed responses, retry + 60s timeout for Render cold starts
-- [ ] `client/src/app/api/revalidate/route.ts` protected by `REVALIDATE_SECRET`
+- [x] `/admin/login`: "Sign in with Google" (Google Identity Services), error state for rejected accounts
+- [x] Auth context using `/auth/me`; silent refresh on 401; logout
+- [x] Protected admin layout: sidebar (module list from [5.2](#52-modules), unbuilt modules hidden), top bar with avatar + logout, `noindex`
+- [x] Empty Dashboard page
+- [x] Footer link switches "Admin" → "Dashboard" when a session exists
+- [x] API client (`lib/api.ts`): base URL, `credentials: 'include'`, CSRF header, typed responses, retry + 60s timeout for Render cold starts
+- [x] `client/src/app/api/revalidate/route.ts` protected by `REVALIDATE_SECRET`
 
 **Done when**
-- [ ] krunalbhandekar10@gmail.com can sign in on production; any other Google account gets 403
-- [ ] Cookies work between the client domain and the API domain (or via rewrite fallback)
-- [ ] Access token expiry refreshes silently; logout revokes the refresh token
-- [ ] Admin routes return 401 without a session; `/admin/*` is `noindex` and disallowed in `robots.txt`
+- [ ] krunalbhandekar10@gmail.com can sign in on production; any other Google account gets 403 *(verify after deploy)*
+- [ ] Cookies work between the client domain and the API domain (or via rewrite fallback) *(verify after deploy)*
+- [x] Access token expiry refreshes silently; logout revokes the refresh token
+- [x] Admin routes return 401 without a session; `/admin/*` is `noindex` and disallowed in `robots.txt`
+
+**Implementation notes**
+- `express-mongo-sanitize` is incompatible with Express 5 (read-only `req.query`): replaced by a body sanitizer (`middlewares/sanitize.ts`) + Mongoose `sanitizeFilter` + Zod validation.
+- No `asyncHandler`: Express 5 forwards rejected promises to the error handler natively.
+- CSRF: `X-Requested-With: portfolio` required on state-changing `/auth/*` and `/admin/*` requests, plus a foreign-`Origin` check.
+- Refresh tokens are HMAC-hashed (`JWT_REFRESH_SECRET`), rotated per use, grouped in families; reuse outside a 30 s grace window revokes the whole family.
+- Proxy mode is the default (see §6.3). Footer link reads the `pf_session` hint cookie — no API call on public pages.
+- Revalidation uses `revalidateTag(tag, { expire: 0 })` so the first visit after an edit is fresh.
+- Admin modules are listed in `client/src/components/admin/admin-modules.ts`; set `available: true` as each one is built.
 
 **Not in this phase:** content CRUD, media uploads, public data.
 

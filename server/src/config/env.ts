@@ -2,20 +2,29 @@ import { z } from "zod";
 
 // Optional now; each becomes required in the phase that starts using it (see portfolio.md §6.5).
 const laterPhase = z.string().min(1).optional();
+const secret = z.string().min(32, "Use at least 32 characters (e.g. `openssl rand -hex 32`)");
 
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-  PORT: z.coerce.number().int().positive().default(5000),
+  PORT: z.coerce.number().int().positive().default(5050),
   CLIENT_URL: z.url(),
+  /** Extra allowed CORS origins, comma-separated (e.g. a Vercel preview URL). */
+  CORS_ORIGINS: z.string().optional(),
+  /** Number of proxies in front of the app (Render = 1). Used for client IPs in logs/rate limits. */
+  TRUST_PROXY_HOPS: z.coerce.number().int().min(0).default(1),
 
   // Phase 2 — database & auth
-  MONGODB_URI: laterPhase,
+  MONGODB_URI: z
+    .string()
+    .regex(/^mongodb(\+srv)?:\/\//, "Expected a mongodb:// or mongodb+srv:// URI"),
+  /** Leave unset when the client proxies /api/v1 (cookies stay host-only on the client domain). */
   COOKIE_DOMAIN: laterPhase,
-  GOOGLE_CLIENT_ID: laterPhase,
+  GOOGLE_CLIENT_ID: z.string().endsWith(".apps.googleusercontent.com"),
   ADMIN_EMAIL: z.email().default("krunalbhandekar10@gmail.com"),
-  JWT_ACCESS_SECRET: laterPhase,
-  JWT_REFRESH_SECRET: laterPhase,
-  REVALIDATE_SECRET: laterPhase,
+  JWT_ACCESS_SECRET: secret,
+  /** HMAC key used to hash refresh tokens before they are stored. */
+  JWT_REFRESH_SECRET: secret,
+  REVALIDATE_SECRET: secret,
 
   // Phase 3 — media (format: cloudinary://<api_key>:<api_secret>@<cloud_name>, read natively by the SDK)
   CLOUDINARY_URL: z
@@ -54,3 +63,10 @@ if (!parsed.success) {
 
 export const env = parsed.data;
 export type Env = typeof env;
+
+export const isProduction = env.NODE_ENV === "production";
+
+export const corsOrigins = [
+  env.CLIENT_URL,
+  ...(env.CORS_ORIGINS?.split(",").map((origin) => origin.trim()) ?? []),
+].filter(Boolean);

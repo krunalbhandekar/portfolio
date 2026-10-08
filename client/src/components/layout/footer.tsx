@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { cacheLife } from "next/cache";
-import { Lock } from "lucide-react";
 import { CopyButton } from "@/components/shared/copy-button";
 import { SocialIcon } from "@/components/shared/social-icon";
 import { StatusBadge } from "@/components/shared/status-badge";
+import { AdminLink } from "./admin-link";
 import { footerResources, mainNav, siteConfig } from "@/config/site";
 
 async function getCurrentYear() {
@@ -86,15 +86,7 @@ export async function Footer() {
             Built with Next.js · Deployed on Vercel &amp; Render · © {year} {siteConfig.name}
           </p>
           {/* Admin entry point (portfolio.md §3.2): deliberately low-key, never in the main nav. */}
-          <Link
-            href="/admin/login"
-            rel="nofollow"
-            prefetch={false}
-            className={`${linkClass} inline-flex items-center gap-1.5 self-start sm:self-auto`}
-          >
-            <Lock className="size-3" aria-hidden="true" />
-            Admin
-          </Link>
+          <AdminLink className={`${linkClass} self-start sm:self-auto`} />
         </div>
       </div>
     </footer>

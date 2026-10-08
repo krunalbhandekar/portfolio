@@ -17,17 +17,19 @@ Both apps auto-deploy from GitHub on push to `main`. There are no CI `.yml` file
 ## Local development
 
 ```bash
-# API → http://localhost:5000/api/v1/health
+# API → http://localhost:5050/api/v1/health  (needs MongoDB: Atlas URI or a local mongod)
+# Port 5050, not 5000: macOS AirPlay Receiver occupies 5000.
 cd server
-cp .env.example .env        # only CLIENT_URL is required in Phase 0
+cp .env.example .env        # fill MONGODB_URI, GOOGLE_CLIENT_ID and the three secrets
 npm install
 npm run dev
 
-# Web → http://localhost:3000
+# Web → http://localhost:3000  (proxies /api/v1/* to API_URL, default http://localhost:5050)
 cd client
-cp .env.example .env.local
+cp .env.example .env.local  # REVALIDATE_SECRET must match the server's
 npm install
 npm run dev
+# Admin: footer "Admin" link → /admin/login (only krunalbhandekar10@gmail.com can sign in)
 ```
 
 ## Scripts (both folders)
@@ -42,7 +44,7 @@ npm run dev
 
 ## Deployment settings
 
-**Vercel (client)**: Framework Next.js, Root Directory `client`, default build command (`npm run build`). Env vars are listed in `client/.env.example`.
+**Vercel (client)**: Framework Next.js, Root Directory `client`, default build command (`npm run build`). Env vars are listed in `client/.env.example`. `API_URL` must point at the Render service (no trailing slash, no `/api/v1`).
 
 **Render (server)**: Web Service, Node runtime, Root Directory `server`
 
@@ -50,4 +52,4 @@ npm run dev
 - Start command: `npm start`
 - Health check path: `/api/v1/health`
 - Region: Singapore
-- Env vars are listed in `server/.env.example`. Phase 0 needs `CLIENT_URL` (and `NODE_ENV=production`).
+- Env vars are listed in `server/.env.example`. Required: `NODE_ENV=production`, `CLIENT_URL` (the Vercel URL), `MONGODB_URI`, `GOOGLE_CLIENT_ID`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`, `REVALIDATE_SECRET`.
