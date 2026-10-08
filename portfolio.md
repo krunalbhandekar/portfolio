@@ -932,23 +932,25 @@ Configured in the cron-job.org dashboard. Each job sends a `POST` with the `x-jo
 **Depends on:** Phase 0. **Spec:** [2](#2-design-direction--modern-developer-aesthetic), [3.2](#32-footer-global), [3.19](#319-global-ux)
 
 **Features / tasks**
-- [ ] Design tokens as CSS variables (colors, radius, spacing, shadows), dark-first, light theme, **accent color variable** (later driven by site settings)
-- [ ] Geist Sans + Geist Mono via `next/font`
-- [ ] Theme toggle (system / dark / light) without flash on load
-- [ ] Base components: Button, Badge/Chip (mono, with tech logo), Card, BentoCard (with hover spotlight), SectionHeader (mono eyebrow → heading → description), Stat, TimelineItem, TagFilter, Lightbox, CodeBlock (Shiki + copy), Callout, EmptyState, Skeleton
-- [ ] Background treatment: subtle dot/grid + noise grain
-- [ ] **Navbar:** sticky, translucent, links (Projects, Case Studies, Engineering, About, Blog, Contact), ⌘K trigger button (opens nothing yet), theme toggle, mobile menu
-- [ ] **Footer:** nav links, socials, resume, RSS, copy-email, meta line, **muted "Admin" link → `/admin/login`** (`rel="nofollow"`)
-- [ ] Motion primitives: reveal-on-scroll wrapper, stagger container; all disabled under reduced motion
-- [ ] Custom 404 page
-- [ ] Internal `/dev/components` preview page (excluded from production build/sitemap) using mock data
+- [x] Design tokens as CSS variables (colors, radius, spacing, shadows), dark-first, light theme, **accent color variable** (later driven by site settings)
+- [x] Geist Sans + Geist Mono via `next/font`
+- [x] Theme toggle (system / dark / light) without flash on load
+- [x] Base components: Button, Badge/Chip (mono, with tech logo), Card, BentoCard (with hover spotlight), SectionHeader (mono eyebrow → heading → description), Stat, TimelineItem, TagFilter, Lightbox, CodeBlock (Shiki + copy), Callout, EmptyState, Skeleton
+- [x] Background treatment: subtle dot/grid + noise grain
+- [x] **Navbar:** sticky, translucent, links (Projects, Case Studies, Engineering, About, Blog, Contact), ⌘K trigger button (opens nothing yet), theme toggle, mobile menu
+- [x] **Footer:** nav links, socials, resume, RSS, copy-email, meta line, **muted "Admin" link → `/admin/login`** (`rel="nofollow"`)
+- [x] Motion primitives: reveal-on-scroll wrapper, stagger container; all disabled under reduced motion
+- [x] Custom 404 page
+- [x] Internal `/dev/components` preview page (excluded from production build/sitemap) using mock data
 
 **Deliverables:** UI kit + layout shell rendered with mock data, deployed on Vercel.
 
+**Implementation notes:** theme toggle is a single button cycling System → Light → Dark (icon chosen by CSS from `html[data-theme-pref]`, no hydration mismatch). Motion uses `LazyMotion` and the mobile menu sheet is lazy-loaded, keeping first-load JS ≈160 KB. Measured on the production build: mobile Performance 96 / Accessibility 100, desktop 100 / 100.
+
 **Done when**
-- [ ] Every component works in dark and light themes and at 360px width
-- [ ] Keyboard focus is visible on every interactive element
-- [ ] Lighthouse on the shell page: Performance ≥ 95, Accessibility ≥ 95
+- [x] Every component works in dark and light themes and at 360px width
+- [x] Keyboard focus is visible on every interactive element
+- [x] Lighthouse on the shell page: Performance ≥ 95, Accessibility ≥ 95
 
 **Not in this phase:** API calls, real content, admin pages.
 
