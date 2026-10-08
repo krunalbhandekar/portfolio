@@ -52,6 +52,7 @@ function ExperienceFields() {
           name="technologies"
           label="Technologies"
           suggestions={skills}
+          emptyHint="No skills yet. Add them under Skills in the sidebar."
           normalize={slugify}
           wide
         />

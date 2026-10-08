@@ -316,83 +316,166 @@ export function ColorField(props: BaseProps) {
 }
 
 /**
- * Chips input for string arrays (technologies, domains…). Enter or comma adds a value.
- * `normalize` (e.g. slugify) is applied to typed values; `suggestions` power a datalist.
+ * Chips input for string arrays (technologies, domains…) with a suggestion dropdown
+ * (ARIA combobox). The list opens on focus and filters as you type; ↑/↓ move, Enter adds the
+ * highlighted suggestion (or the typed text), Escape closes, Backspace on empty removes the
+ * last chip. `normalize` (e.g. slugify) is applied to free-typed values.
  */
 export function TagsField({
   suggestions = [],
   normalize = (value: string) => value.trim(),
-  placeholder = "Type and press Enter",
+  placeholder,
+  emptyHint,
   ...props
 }: BaseProps & {
   suggestions?: SelectOption[];
   normalize?: (value: string) => string;
   placeholder?: string;
+  /** Shown in the dropdown when there are no suggestions at all. */
+  emptyHint?: string;
 }) {
   const { id, inputRef, value, onChange, onBlur, error, aria } = useBoundField(props.name);
   const [draft, setDraft] = useState("");
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(0);
   const values: string[] = Array.isArray(value) ? (value as string[]) : [];
-  const labelFor = (value: string) => suggestions.find((s) => s.value === value)?.label ?? value;
-  const listId = `${id}-suggestions`;
+  const labelFor = (v: string) => suggestions.find((s) => s.value === v)?.label ?? v;
+  const listId = `${id}-listbox`;
+
+  const needle = draft.trim().toLowerCase();
+  const options = suggestions
+    .filter((s) => !values.includes(s.value))
+    .filter((s) => !needle || s.label.toLowerCase().includes(needle) || s.value.includes(needle))
+    .slice(0, 50);
+  const highlighted = options[Math.min(active, options.length - 1)];
 
   const add = (raw: string) => {
-    // Accept either a suggestion's label or its value.
-    const match = suggestions.find((s) => s.label.toLowerCase() === raw.trim().toLowerCase());
-    const value = match ? match.value : normalize(raw);
-    if (value && !values.includes(value)) onChange([...values, value]);
+    // Accept either a suggestion's label or its value; otherwise normalise the typed text.
+    const text = raw.trim();
+    const match = suggestions.find(
+      (s) => s.label.toLowerCase() === text.toLowerCase() || s.value === text,
+    );
+    const next = match ? match.value : normalize(text);
+    if (next && !values.includes(next)) onChange([...values, next]);
     setDraft("");
+    setActive(0);
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if ((event.key === "Enter" || event.key === ",") && draft.trim()) {
+    if (event.key === "ArrowDown") {
       event.preventDefault();
-      add(draft);
+      setOpen(true);
+      setActive((i) => (options.length ? (i + 1) % options.length : 0));
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setOpen(true);
+      setActive((i) => (options.length ? (i - 1 + options.length) % options.length : 0));
+    } else if (event.key === "Enter" || event.key === ",") {
+      if (open && highlighted && (needle || event.key === "Enter")) {
+        event.preventDefault();
+        add(highlighted.value);
+      } else if (draft.trim()) {
+        event.preventDefault();
+        add(draft);
+      }
+    } else if (event.key === "Escape") {
+      setOpen(false);
     } else if (event.key === "Backspace" && !draft && values.length) {
       onChange(values.slice(0, -1));
     }
   };
 
+  const showList = open && (options.length > 0 || (suggestions.length === 0 && !!emptyHint));
+
   return (
     <FieldShell id={id} error={error} {...props}>
-      <div className="flex min-h-8 flex-wrap items-center gap-1.5 rounded-lg border border-input px-1.5 py-1 focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 dark:bg-input/30">
-        {values.map((value) => (
-          <span
-            key={value}
-            className="inline-flex h-6 items-center gap-1 rounded-md bg-muted pr-1 pl-2 font-mono text-xs"
-          >
-            {labelFor(value)}
-            <button
-              type="button"
-              aria-label={`Remove ${labelFor(value)}`}
-              className="rounded text-muted-foreground hover:text-foreground"
-              onClick={() => onChange(values.filter((v) => v !== value))}
+      <div className="relative">
+        <div className="flex min-h-8 flex-wrap items-center gap-1.5 rounded-lg border border-input px-1.5 py-1 focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50 dark:bg-input/30">
+          {values.map((v) => (
+            <span
+              key={v}
+              className="inline-flex h-6 items-center gap-1 rounded-md bg-muted pr-1 pl-2 font-mono text-xs"
             >
-              <X className="size-3" aria-hidden="true" />
-            </button>
-          </span>
-        ))}
-        <input
-          {...aria}
-          list={suggestions.length ? listId : undefined}
-          className="h-6 min-w-24 flex-1 bg-transparent px-1 text-sm outline-none"
-          placeholder={values.length ? "" : placeholder}
-          value={draft}
-          onChange={(event) => setDraft(event.target.value)}
-          onKeyDown={onKeyDown}
-          onBlur={() => {
-            if (draft.trim()) add(draft);
-            onBlur();
-          }}
-          ref={inputRef}
-        />
-        {suggestions.length ? (
-          <datalist id={listId}>
-            {suggestions
-              .filter((s) => !values.includes(s.value))
-              .map((s) => (
-                <option key={s.value} value={s.label} />
-              ))}
-          </datalist>
+              {labelFor(v)}
+              <button
+                type="button"
+                aria-label={`Remove ${labelFor(v)}`}
+                className="rounded text-muted-foreground hover:text-foreground"
+                onClick={() => onChange(values.filter((x) => x !== v))}
+              >
+                <X className="size-3" aria-hidden="true" />
+              </button>
+            </span>
+          ))}
+          <input
+            {...aria}
+            role="combobox"
+            aria-expanded={showList}
+            aria-controls={listId}
+            aria-autocomplete="list"
+            aria-activedescendant={
+              showList && highlighted ? `${listId}-${highlighted.value}` : undefined
+            }
+            autoComplete="off"
+            className="h-6 min-w-24 flex-1 bg-transparent px-1 text-sm outline-none"
+            placeholder={
+              values.length
+                ? ""
+                : (placeholder ??
+                  (suggestions.length ? "Click to choose or type…" : "Type and press Enter"))
+            }
+            value={draft}
+            onChange={(event) => {
+              setDraft(event.target.value);
+              setActive(0);
+              setOpen(true);
+            }}
+            onFocus={() => setOpen(true)}
+            onClick={() => setOpen(true)}
+            onKeyDown={onKeyDown}
+            onBlur={() => {
+              setOpen(false);
+              if (draft.trim()) add(draft);
+              onBlur();
+            }}
+            ref={inputRef}
+          />
+        </div>
+        {showList ? (
+          <ul
+            id={listId}
+            role="listbox"
+            aria-label={`${props.label} suggestions`}
+            className="absolute inset-x-0 top-full z-50 mt-1 max-h-56 overflow-y-auto rounded-lg border bg-popover p-1 text-sm shadow-lg"
+          >
+            {options.length === 0 ? (
+              <li className="px-2 py-1.5 text-xs text-muted-foreground">{emptyHint}</li>
+            ) : (
+              options.map((option, index) => (
+                <li
+                  key={option.value}
+                  id={`${listId}-${option.value}`}
+                  role="option"
+                  aria-selected={option === highlighted}
+                  // mousedown (not click) + preventDefault keeps focus in the input.
+                  onMouseDown={(event) => {
+                    event.preventDefault();
+                    add(option.value);
+                  }}
+                  onMouseEnter={() => setActive(index)}
+                  className={cn(
+                    "flex cursor-pointer items-center justify-between gap-2 rounded-md px-2 py-1.5",
+                    option === highlighted ? "bg-accent text-foreground" : "text-muted-foreground",
+                  )}
+                >
+                  <span>{option.label}</span>
+                  <span className="font-mono text-[0.7rem] text-muted-foreground">
+                    {option.value}
+                  </span>
+                </li>
+              ))
+            )}
+          </ul>
         ) : null}
       </div>
     </FieldShell>

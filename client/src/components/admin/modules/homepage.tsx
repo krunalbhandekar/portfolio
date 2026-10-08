@@ -88,6 +88,7 @@ function HomepageFields() {
           name="hero.stack"
           label="Primary stack chips"
           suggestions={skills}
+          emptyHint="No skills yet. Add them under Skills in the sidebar."
           normalize={slugify}
           description="Up to 8; pick from your skills."
           wide
@@ -172,6 +173,7 @@ function HomepageFields() {
                 name={`${prefix}.skills`}
                 label="Skills"
                 suggestions={skills}
+                emptyHint="No skills yet. Add them under Skills in the sidebar."
                 normalize={slugify}
               />
               <TextareaField name={`${prefix}.summary`} label="Summary" maxLength={300} wide />
