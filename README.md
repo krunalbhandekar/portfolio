@@ -60,7 +60,7 @@ Full, commented lists: [`server/.env.example`](server/.env.example) and [`client
 | `CLOUDINARY_URL` | yes | `cloudinary://<key>:<secret>@<cloud>` (media, usage widget) |
 | `RESEND_API_KEY` | optional | Contact/testimonial email notifications |
 
-**Client (Vercel)**: `NEXT_PUBLIC_SITE_URL`, `API_URL` (Render URL, no trailing slash, no `/api/v1`), `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `REVALIDATE_SECRET`.
+**Client (Vercel)**: `NEXT_PUBLIC_SITE_URL`, `API_URL` (Render URL, no trailing slash, no `/api/v1`), `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, `REVALIDATE_SECRET`.
 
 ## Deployment
 

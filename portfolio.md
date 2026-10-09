@@ -435,7 +435,6 @@ GITHUB_TOKEN=
 NEXT_PUBLIC_SITE_URL=https://krunalbhandekar.dev
 API_URL=https://<render-service>.onrender.com   # server-only; /api/v1 proxy target
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=
 REVALIDATE_SECRET=
 ```
 
