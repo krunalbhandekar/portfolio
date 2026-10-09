@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { CalendarDays, Mail, MapPin } from "lucide-react";
+import Link from "next/link";
+import { CalendarDays, Mail, MapPin, MessageSquareQuote } from "lucide-react";
 import { ContactForm } from "@/components/contact/contact-form";
 import { CopyButton } from "@/components/shared/copy-button";
 import { JsonLd } from "@/components/shared/json-ld";
@@ -84,6 +85,16 @@ export default async function ContactPage() {
             </li>
           ))}
         </ul>
+        <Link
+          href="/testimonials/write"
+          className="flex items-start gap-3 rounded-2xl border bg-card p-4 text-sm transition-colors hover:border-foreground/20"
+        >
+          <MessageSquareQuote className="mt-0.5 size-4 text-brand-text" aria-hidden="true" />
+          <span className="flex flex-col gap-0.5">
+            <span className="font-medium">Worked with me before?</span>
+            <span className="text-muted-foreground">Leave a testimonial →</span>
+          </span>
+        </Link>
       </div>
       <ContactForm />
     </div>

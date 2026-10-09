@@ -1,0 +1,38 @@
+import { env } from "../config/env.js";
+import { logger } from "./logger.js";
+
+type AdminEmail = { subject: string; text: string; replyTo?: string };
+
+/**
+ * Emails the site owner (`CONTACT_NOTIFY_EMAIL`) via Resend's HTTP API. Never throws: callers
+ * have already stored whatever triggered the email. Returns whether it was sent.
+ */
+export async function sendAdminEmail({ subject, text, replyTo }: AdminEmail) {
+  if (!env.RESEND_API_KEY) {
+    logger.warn({ subject }, "RESEND_API_KEY not set; notification email not sent");
+    return false;
+  }
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${env.RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: env.RESEND_FROM,
+        to: [env.CONTACT_NOTIFY_EMAIL],
+        ...(replyTo ? { reply_to: replyTo } : {}),
+        subject,
+        text,
+      }),
+      signal: AbortSignal.timeout(10_000),
+    });
+    if (!res.ok)
+      throw new Error(`Resend responded ${res.status}: ${(await res.text()).slice(0, 200)}`);
+    return true;
+  } catch (err) {
+    logger.error({ err, subject }, "Failed to send notification email");
+    return false;
+  }
+}

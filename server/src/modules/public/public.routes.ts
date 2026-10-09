@@ -1,11 +1,19 @@
 import { Router } from "express";
 import { z } from "zod";
-import { contactLimiter } from "../../middlewares/rate-limit.js";
+import { contactLimiter, testimonialLimiter } from "../../middlewares/rate-limit.js";
 import { validate } from "../../middlewares/validate.js";
 import { sendSuccess } from "../../utils/response.js";
 import { SLUG_PATTERN } from "../../utils/slug.js";
 import { contactSchema } from "../messages/contact.schema.js";
 import { submitContact } from "../messages/contact.service.js";
+import {
+  visitorTestimonialSchema,
+  visitorVerifySchema,
+} from "../testimonials/testimonial.schema.js";
+import {
+  submitVisitorTestimonial,
+  verifyVisitor,
+} from "../testimonials/visitor-testimonial.service.js";
 import * as service from "./public.service.js";
 import { requirePreviewSecret } from "../../middlewares/preview-secret.js";
 
@@ -84,4 +92,18 @@ export const publicRoutes = Router()
   .get("/sitemap-data", async (_req, res) => sendSuccess(res, await service.getSitemapData()))
   .post("/contact", contactLimiter, validate({ body: contactSchema }), async (req, res) =>
     sendSuccess(res, await submitContact(req, req.body), { status: 201 }),
+  )
+  // Visitor testimonials: Google-verified, stored as drafts for the owner to review.
+  .post(
+    "/testimonials/verify",
+    testimonialLimiter,
+    validate({ body: visitorVerifySchema }),
+    async (req, res) => sendSuccess(res, await verifyVisitor(req.body.credential)),
+  )
+  .post(
+    "/testimonials",
+    testimonialLimiter,
+    validate({ body: visitorTestimonialSchema }),
+    async (req, res) =>
+      sendSuccess(res, await submitVisitorTestimonial(req, req.body), { status: 201 }),
   );

@@ -254,8 +254,11 @@ export type Testimonial = {
   role: string;
   company: string;
   relationship: string;
-  photo: Media | null;
   linkedinUrl: string;
+  /** Google profile picture (visitor submissions only). */
+  avatarUrl: string | null;
+  /** Submitted by the person themselves, signed in with Google. */
+  verified: boolean;
 };
 
 export type Achievement = {

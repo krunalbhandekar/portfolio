@@ -29,3 +29,6 @@ export const refreshLimiter = rateLimit({ ...base, windowMs: 15 * 60_000, limit:
 
 /** Contact form submissions. */
 export const contactLimiter = rateLimit({ ...base, windowMs: 60 * 60_000, limit: 5 });
+
+/** Visitor testimonial verify + submit (Google sign-in already limits abuse; this caps retries). */
+export const testimonialLimiter = rateLimit({ ...base, windowMs: 60 * 60_000, limit: 15 });

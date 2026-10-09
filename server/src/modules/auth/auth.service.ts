@@ -1,8 +1,7 @@
 import type { Request } from "express";
-import { OAuth2Client } from "google-auth-library";
 import type { Types } from "mongoose";
 import { env } from "../../config/env.js";
-import { logger } from "../../lib/logger.js";
+import { verifyGoogleIdToken } from "../../lib/google.js";
 import { forbidden, unauthorized } from "../../utils/app-error.js";
 import { Admin } from "../admins/admin.model.js";
 import { recordAudit } from "../audit/audit.service.js";
@@ -14,8 +13,6 @@ import {
   signAccessToken,
 } from "./auth.tokens.js";
 import { RefreshToken } from "./refresh-token.model.js";
-
-const googleClient = new OAuth2Client(env.GOOGLE_CLIENT_ID);
 
 /** A rotated token presented again within this window is treated as a benign race (two tabs). */
 const REUSE_GRACE_MS = 30_000;
@@ -47,21 +44,7 @@ async function createSession(
 
 /** Verifies a Google ID token and signs in the single allow-listed admin. */
 export async function loginWithGoogle(req: Request, credential: string) {
-  let payload;
-  try {
-    const ticket = await googleClient.verifyIdToken({
-      idToken: credential,
-      audience: env.GOOGLE_CLIENT_ID,
-    });
-    payload = ticket.getPayload();
-  } catch (err) {
-    // google-auth-library can include the raw ID token in its messages: redact JWT-like strings.
-    const reason =
-      err instanceof Error
-        ? err.message.replace(/[\w-]+\.[\w-]+\.[\w-]+/g, "[token]").slice(0, 300)
-        : "unknown";
-    logger.warn({ reason }, "Google token verification failed");
-  }
+  const payload = await verifyGoogleIdToken(credential);
 
   if (!payload?.email) {
     await recordAudit(req, {

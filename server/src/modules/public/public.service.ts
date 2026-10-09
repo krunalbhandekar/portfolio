@@ -45,9 +45,23 @@ const TESTIMONIAL_FIELDS = {
   role: 1,
   company: 1,
   relationship: 1,
-  photo: 1,
   linkedinUrl: 1,
+  source: 1,
+  "submittedBy.picture": 1,
 } as const;
+
+type TestimonialDoc = {
+  source?: string;
+  submittedBy?: { picture?: string };
+  [key: string]: unknown;
+};
+
+/** Public shape: the Google picture (visitor submissions) and a "verified" flag, never the email. */
+const publicTestimonial = ({ source, submittedBy, ...t }: TestimonialDoc) => ({
+  ...t,
+  avatarUrl: submittedBy?.picture || null,
+  verified: source === "visitor",
+});
 const INTERNAL = { updatedBy: 0, __v: 0, key: 0 } as const;
 
 /** Fields for project cards (grid, featured, related). */
@@ -112,7 +126,10 @@ export async function getHome() {
   ]);
   const [caseStudies, testimonials] = await Promise.all([
     CaseStudy.find(PUBLISHED, CASE_STUDY_CARD).sort({ featured: -1, order: 1 }).limit(3).lean(),
-    Testimonial.find(PUBLISHED, TESTIMONIAL_FIELDS).sort({ order: 1 }).limit(12).lean(),
+    Testimonial.find(PUBLISHED, TESTIMONIAL_FIELDS)
+      .sort({ order: 1 })
+      .limit(12)
+      .lean<TestimonialDoc[]>(),
   ]);
 
   return {
@@ -122,7 +139,7 @@ export async function getHome() {
     skills,
     about,
     caseStudies,
-    testimonials,
+    testimonials: testimonials.map(publicTestimonial),
   };
 }
 
@@ -296,7 +313,10 @@ export async function getBuiltFeatures() {
 }
 
 export async function getTestimonials() {
-  return Testimonial.find(PUBLISHED, TESTIMONIAL_FIELDS).sort({ order: 1 }).lean();
+  const items = await Testimonial.find(PUBLISHED, TESTIMONIAL_FIELDS)
+    .sort({ order: 1 })
+    .lean<TestimonialDoc[]>();
+  return items.map(publicTestimonial);
 }
 
 export async function getAchievements() {

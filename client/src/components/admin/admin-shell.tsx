@@ -12,10 +12,16 @@ import { cn } from "@/lib/utils";
 import { AdminAvatar } from "./admin-avatar";
 import { availableModules } from "./admin-modules";
 import { useUnreadCount } from "./messages/use-messages";
+import { usePendingTestimonials } from "./modules/use-pending-testimonials";
 
 function ModuleNav({ orientation }: { orientation: "vertical" | "horizontal" }) {
   const pathname = usePathname();
   const unread = useUnreadCount();
+  const pending = usePendingTestimonials();
+  const badges: Record<string, { count?: number; label: string }> = {
+    "/admin/messages": { count: unread.data, label: "unread" },
+    "/admin/testimonials": { count: pending.data, label: "to review" },
+  };
   return (
     <nav
       aria-label="Admin"
@@ -41,10 +47,10 @@ function ModuleNav({ orientation }: { orientation: "vertical" | "horizontal" }) 
           >
             <Icon className="size-4" aria-hidden="true" />
             {label}
-            {href === "/admin/messages" && unread.data ? (
+            {badges[href]?.count ? (
               <span className="ml-auto rounded-full bg-brand px-1.5 font-mono text-[0.65rem] leading-4 text-brand-foreground">
-                {unread.data}
-                <span className="sr-only"> unread</span>
+                {badges[href].count}
+                <span className="sr-only"> {badges[href].label}</span>
               </span>
             ) : null}
           </Link>

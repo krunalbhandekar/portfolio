@@ -2,6 +2,7 @@ import { Router } from "express";
 import mongoose from "mongoose";
 import { crudRouter } from "../lib/crud/crud-router.js";
 import { singletonRouter } from "../lib/crud/singleton-router.js";
+import { sendSuccess } from "../utils/response.js";
 import { About } from "./about/about.model.js";
 import { aboutInput } from "./about/about.schema.js";
 import { Achievement } from "./achievements/achievement.model.js";
@@ -223,6 +224,11 @@ export const contentRoutes = Router()
       tags: () => ["built"],
     }),
   )
+  // Visitor submissions waiting for review (sidebar badge). Registered before the CRUD `/:id`.
+  .get("/testimonials/pending-count", async (_req, res) => {
+    const count = await Testimonial.countDocuments({ source: "visitor", status: "draft" });
+    sendSuccess(res, { count });
+  })
   .use(
     "/testimonials",
     crudRouter({

@@ -1,5 +1,8 @@
 "use client";
 
+import { useWatch } from "react-hook-form";
+import { BadgeCheck } from "lucide-react";
+import { TestimonialAvatar } from "@/components/testimonials/testimonial-avatar";
 import { slugify } from "@/lib/slug";
 import { DateField, SelectField, TagsField, TextField, TextareaField } from "../kit/fields";
 import { FormSection } from "../kit/layout";
@@ -66,20 +69,64 @@ export const builtFeaturesConfig: ResourceConfig = {
 
 /* ---------------------------------------------------------------- Testimonials */
 
-function TestimonialFields() {
+type Submitter = { email?: string; picture?: string; submittedAt?: string } | null;
+
+/** Read-only details for testimonials a visitor submitted through /testimonials/write. */
+function VisitorSubmission() {
+  const source = useWatch({ name: "source" }) as string | undefined;
+  const submittedBy = useWatch({ name: "submittedBy" }) as Submitter;
+  const name = useWatch({ name: "name" }) as string;
+  if (source !== "visitor" || !submittedBy) return null;
   return (
     <FormSection
-      title="Testimonial"
-      description="Publish to show it in the homepage carousel; unpublish to hide it."
+      title="Submitted by a visitor"
+      description="Verified with Google. Shows a “Verified via Google” mark and their Google photo publicly; the email is never shown."
     >
-      <TextareaField name="quote" label="Quote" required rows={5} maxLength={1000} wide />
-      <TextField name="name" label="Name" required />
-      <SelectField name="relationship" label="Relationship" options={RELATIONSHIPS} />
-      <TextField name="role" label="Role" placeholder="Engineering Manager" />
-      <TextField name="company" label="Company" />
-      <TextField name="linkedinUrl" label="LinkedIn URL" type="url" wide />
-      <MediaField name="photo" label="Photo" folder="portfolio/testimonials" wide />
+      <div className="flex items-center gap-3 sm:col-span-2">
+        <TestimonialAvatar name={name || "?"} src={submittedBy.picture || null} />
+        <div className="flex min-w-0 flex-col text-sm">
+          <span className="flex items-center gap-1.5">
+            <BadgeCheck className="size-4 text-brand-text" aria-hidden="true" />
+            {submittedBy.email ? (
+              <a href={`mailto:${submittedBy.email}`} className="truncate hover:underline">
+                {submittedBy.email}
+              </a>
+            ) : (
+              "Google account"
+            )}
+          </span>
+          <span className="text-xs text-muted-foreground">
+            Submitted{" "}
+            {submittedBy.submittedAt
+              ? new Intl.DateTimeFormat(undefined, {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                }).format(new Date(submittedBy.submittedAt))
+              : ""}
+            . Deleting it lets this account submit again.
+          </span>
+        </div>
+      </div>
     </FormSection>
+  );
+}
+
+function TestimonialFields() {
+  return (
+    <>
+      <VisitorSubmission />
+      <FormSection
+        title="Testimonial"
+        description="Publish to show it in the homepage carousel; unpublish to hide it."
+      >
+        <TextareaField name="quote" label="Quote" required rows={5} maxLength={1000} wide />
+        <TextField name="name" label="Name" required />
+        <SelectField name="relationship" label="Relationship" options={RELATIONSHIPS} />
+        <TextField name="role" label="Role" placeholder="Engineering Manager" />
+        <TextField name="company" label="Company" />
+        <TextField name="linkedinUrl" label="LinkedIn URL" type="url" wide />
+      </FormSection>
+    </>
   );
 }
 
@@ -88,11 +135,24 @@ export const testimonialsConfig: ResourceConfig = {
   apiPath: "testimonials",
   title: "Testimonials",
   singular: "Testimonial",
-  description: "Quotes from managers, colleagues and clients.",
+  description:
+    "Quotes from managers, colleagues and clients. Visitors can also submit one at /testimonials/write; it arrives here as a draft.",
   labelField: "name",
   columns: [
     { header: "Name", cell: (d) => String(d.name), sortKey: "name" },
     { header: "Company", cell: (d) => String(d.company || "—"), sortKey: "company" },
+    {
+      header: "Source",
+      cell: (d) =>
+        d.source === "visitor" ? (
+          <span className="inline-flex items-center gap-1 text-brand-text">
+            <BadgeCheck className="size-3.5" aria-hidden="true" />
+            Visitor
+          </span>
+        ) : (
+          <span className="text-muted-foreground">Added by you</span>
+        ),
+    },
     {
       header: "Relationship",
       cell: (d) => labelFor(RELATIONSHIPS, d.relationship),
@@ -105,8 +165,10 @@ export const testimonialsConfig: ResourceConfig = {
     role: "",
     company: "",
     relationship: "colleague",
-    photo: null,
     linkedinUrl: "",
+    // Read-only (shown in the editor; the API ignores them on save).
+    source: "admin",
+    submittedBy: null,
   },
   Fields: TestimonialFields,
 };

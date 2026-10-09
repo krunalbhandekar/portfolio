@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, MapPin } from "lucide-react";
+import { ArrowRight, BadgeCheck, MapPin } from "lucide-react";
 import { CaseStudyCard } from "@/components/case-studies/case-study-card";
 import { Reveal } from "@/components/motion/reveal";
 import { ProjectCard } from "@/components/projects/project-card";
@@ -10,11 +10,11 @@ import { SectionHeader } from "@/components/shared/section-header";
 import { Stat } from "@/components/shared/stat";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { TechChip } from "@/components/shared/tech-chip";
+import { TestimonialAvatar } from "@/components/testimonials/testimonial-avatar";
 import { Timeline, TimelineItem } from "@/components/shared/timeline";
 import { buttonVariants } from "@/components/ui/button";
 import type { HomeData, Settings } from "@/lib/data/types";
 import { excerpt, formatPeriod } from "@/lib/format";
-import { initials } from "@/lib/initials";
 import { cn } from "@/lib/utils";
 import { TestimonialsCarousel } from "./testimonials-carousel";
 
@@ -366,7 +366,12 @@ export function TestimonialsSection({ home, index }: SectionProps) {
   if (!home.testimonials.length) return null;
   return (
     <section className="container-page flex flex-col gap-8 py-16">
-      <SectionHeader index={index} eyebrow="Testimonials" title="What people say" />
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <SectionHeader index={index} eyebrow="Testimonials" title="What people say" />
+        <Link href="/testimonials/write" className={buttonVariants({ variant: "outline" })}>
+          Worked with me? Leave a testimonial <ArrowRight aria-hidden="true" />
+        </Link>
+      </div>
       <TestimonialsCarousel count={home.testimonials.length}>
         {home.testimonials.map((t) => (
           <li key={t._id} className="w-[85%] shrink-0 snap-start sm:w-[420px]">
@@ -375,35 +380,28 @@ export function TestimonialsSection({ home, index }: SectionProps) {
                 “{t.quote}”
               </blockquote>
               <figcaption className="flex items-center gap-3">
-                {t.photo ? (
-                  <Image
-                    src={t.photo.url}
-                    alt=""
-                    width={40}
-                    height={40}
-                    className="size-10 rounded-full border object-cover"
-                  />
-                ) : (
-                  <span
-                    aria-hidden="true"
-                    className="flex size-10 items-center justify-center rounded-full border bg-surface font-mono text-xs"
-                  >
-                    {initials(t.name)}
-                  </span>
-                )}
+                <TestimonialAvatar name={t.name} src={t.avatarUrl} />
                 <span className="flex min-w-0 flex-col">
-                  {t.linkedinUrl ? (
-                    <a
-                      href={t.linkedinUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="truncate text-sm font-medium hover:underline"
-                    >
-                      {t.name}
-                    </a>
-                  ) : (
-                    <span className="truncate text-sm font-medium">{t.name}</span>
-                  )}
+                  <span className="flex min-w-0 items-center gap-1.5">
+                    {t.linkedinUrl ? (
+                      <a
+                        href={t.linkedinUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="truncate text-sm font-medium hover:underline"
+                      >
+                        {t.name}
+                      </a>
+                    ) : (
+                      <span className="truncate text-sm font-medium">{t.name}</span>
+                    )}
+                    {t.verified ? (
+                      <span title="Verified via Google" className="shrink-0 text-brand-text">
+                        <BadgeCheck className="size-4" aria-hidden="true" />
+                        <span className="sr-only">Verified via Google</span>
+                      </span>
+                    ) : null}
+                  </span>
                   <span className="truncate text-xs text-muted-foreground">
                     {[t.role, t.company].filter(Boolean).join(", ")}
                     {RELATIONSHIP_LABELS[t.relationship]

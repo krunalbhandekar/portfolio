@@ -1,7 +1,7 @@
 import type { Request } from "express";
 import type { z } from "zod";
-import { env } from "../../config/env.js";
 import { logger } from "../../lib/logger.js";
+import { sendAdminEmail } from "../../lib/mailer.js";
 import type { contactSchema } from "./contact.schema.js";
 import { Message } from "./message.model.js";
 
@@ -14,12 +14,8 @@ const REASON_LABELS: Record<string, string> = {
   other: "Other",
 };
 
-/** Notification email via Resend's HTTP API. Never throws: the message is already stored. */
-async function sendNotification(input: ContactInput) {
-  if (!env.RESEND_API_KEY) {
-    logger.warn("RESEND_API_KEY not set; contact message stored but not emailed");
-    return false;
-  }
+/** Notification email. Never throws: the message is already stored. */
+function sendNotification(input: ContactInput) {
   const lines = [
     `Name: ${input.name}`,
     `Email: ${input.email}`,
@@ -28,29 +24,11 @@ async function sendNotification(input: ContactInput) {
     "",
     input.message,
   ].filter((line) => line !== null);
-  try {
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${env.RESEND_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: env.RESEND_FROM,
-        to: [env.CONTACT_NOTIFY_EMAIL],
-        reply_to: input.email,
-        subject: `[Portfolio] ${input.subject || REASON_LABELS[input.reason] || "New message"} — ${input.name}`,
-        text: lines.join("\n"),
-      }),
-      signal: AbortSignal.timeout(10_000),
-    });
-    if (!res.ok)
-      throw new Error(`Resend responded ${res.status}: ${(await res.text()).slice(0, 200)}`);
-    return true;
-  } catch (err) {
-    logger.error({ err }, "Failed to send contact notification");
-    return false;
-  }
+  return sendAdminEmail({
+    subject: `[Portfolio] ${input.subject || REASON_LABELS[input.reason] || "New message"} — ${input.name}`,
+    text: lines.join("\n"),
+    replyTo: input.email,
+  });
 }
 
 export async function submitContact(req: Request, input: ContactInput) {
