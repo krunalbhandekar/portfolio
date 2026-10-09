@@ -7,6 +7,7 @@ import { ArrowLeft, Clock } from "lucide-react";
 import { CaseStudyCard } from "@/components/case-studies/case-study-card";
 import { ShareButtons } from "@/components/case-studies/share-buttons";
 import { TableOfContents } from "@/components/case-studies/toc";
+import { TrackView } from "@/components/layout/track-view";
 import { ProjectCard } from "@/components/projects/project-card";
 import { JsonLd } from "@/components/shared/json-ld";
 import { RichText } from "@/components/shared/rich-text";
@@ -66,6 +67,7 @@ async function CaseStudyContent({ params }: { params: Promise<{ slug: string }> 
 
   return (
     <article className="container-page flex flex-col gap-12 py-12">
+      <TrackView type="case_study_view" refId={study.slug} />
       <JsonLd
         data={[
           breadcrumbJsonLd([
@@ -104,7 +106,7 @@ async function CaseStudyContent({ params }: { params: Promise<{ slug: string }> 
           <span className="inline-flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
             <Clock className="size-3.5" aria-hidden="true" /> {study.readingTime} min read
           </span>
-          <ShareButtons url={url} title={study.title} />
+          <ShareButtons url={url} />
         </div>
       </header>
 

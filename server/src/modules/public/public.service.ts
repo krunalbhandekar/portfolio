@@ -16,6 +16,9 @@ import { Resume } from "../resumes/resume.model.js";
 import { SiteSettings } from "../settings/settings.model.js";
 import { Skill } from "../skills/skill.model.js";
 import { Testimonial } from "../testimonials/testimonial.model.js";
+import { GithubCache } from "../github/github.model.js";
+import { Post } from "../posts/post.model.js";
+import { getLatestPosts } from "../posts/post.public.js";
 
 /*
  * Read-only data for the public site (portfolio.md §10). Only `published` content, and only
@@ -124,12 +127,13 @@ export async function getHome() {
     Skill.find(PUBLISHED, { name: 1, slug: 1, icon: 1, category: 1 }).sort({ order: 1 }).lean(),
     About.findOne({ key: "default" }, { headline: 1, story: 1, portrait: 1 }).lean(),
   ]);
-  const [caseStudies, testimonials] = await Promise.all([
+  const [caseStudies, testimonials, posts] = await Promise.all([
     CaseStudy.find(PUBLISHED, CASE_STUDY_CARD).sort({ featured: -1, order: 1 }).limit(3).lean(),
     Testimonial.find(PUBLISHED, TESTIMONIAL_FIELDS)
       .sort({ order: 1 })
       .limit(12)
       .lean<TestimonialDoc[]>(),
+    getLatestPosts(3),
   ]);
 
   return {
@@ -140,6 +144,7 @@ export async function getHome() {
     about,
     caseStudies,
     testimonials: testimonials.map(publicTestimonial),
+    posts,
   };
 }
 
@@ -372,12 +377,28 @@ function attachmentUrl(url: string, label: string) {
   return url.includes("/upload/") ? url.replace("/upload/", `/upload/fl_attachment:${name}/`) : url;
 }
 
+/** Counts a download; returns whether the id was a published resume. */
 export async function countResumeDownload(id: string) {
-  if (!Types.ObjectId.isValid(id)) return;
-  await Resume.updateOne(
+  if (!Types.ObjectId.isValid(id)) return false;
+  const result = await Resume.updateOne(
     { ...PUBLISHED, _id: new Types.ObjectId(id) },
     { $inc: { downloadCount: 1 } },
   );
+  return result.matchedCount > 0;
+}
+
+/** Every published resume version, for role-tailored links (`/resume?v=backend`) and /hire. */
+export async function getResumes() {
+  const resumes = await Resume.find(PUBLISHED, {
+    label: 1,
+    slug: 1,
+    file: 1,
+    isDefault: 1,
+    updatedAt: 1,
+  })
+    .sort({ isDefault: -1, order: 1 })
+    .lean();
+  return resumes.map((r) => ({ ...r, downloadUrl: attachmentUrl(r.file.url, r.label) }));
 }
 
 export async function getSitemapData() {
@@ -389,26 +410,57 @@ export async function getSitemapData() {
         .sort({ updatedAt: -1 })
         .lean<{ updatedAt?: Date }>()
     )?.updatedAt ?? null;
-  const [projects, settings, about, experiences, skills, caseStudies, engineering, built] =
-    await Promise.all([
-      Project.find(
-        { ...PUBLISHED, "seo.noindex": mongoose.trusted({ $ne: true }) },
-        { slug: 1, updatedAt: 1 },
-      ).lean<{ slug: string; updatedAt: Date }[]>(),
-      latest(SiteSettings, {}),
-      latest(About, {}),
-      latest(Experience),
-      latest(Skill),
-      CaseStudy.find(
-        { ...PUBLISHED, "seo.noindex": mongoose.trusted({ $ne: true }) },
-        { slug: 1, updatedAt: 1 },
-      ).lean<{ slug: string; updatedAt: Date }[]>(),
-      latest(EngineeringItem),
-      latest(BuiltFeature),
-    ]);
+  const [
+    projects,
+    settings,
+    about,
+    experiences,
+    skills,
+    caseStudies,
+    engineering,
+    built,
+    posts,
+    skillPages,
+    github,
+  ] = await Promise.all([
+    Project.find(
+      { ...PUBLISHED, "seo.noindex": mongoose.trusted({ $ne: true }) },
+      { slug: 1, updatedAt: 1 },
+    ).lean<{ slug: string; updatedAt: Date }[]>(),
+    latest(SiteSettings, {}),
+    latest(About, {}),
+    latest(Experience),
+    latest(Skill),
+    CaseStudy.find(
+      { ...PUBLISHED, "seo.noindex": mongoose.trusted({ $ne: true }) },
+      { slug: 1, updatedAt: 1 },
+    ).lean<{ slug: string; updatedAt: Date }[]>(),
+    latest(EngineeringItem),
+    latest(BuiltFeature),
+    Post.find(
+      { ...PUBLISHED, "seo.noindex": mongoose.trusted({ $ne: true }) },
+      { slug: 1, updatedAt: 1 },
+    ).lean<{ slug: string; updatedAt: Date }[]>(),
+    Skill.find(PUBLISHED, { slug: 1, updatedAt: 1 }).lean<{ slug: string; updatedAt: Date }[]>(),
+    GithubCache.findOne({ key: "default" }, { fetchedAt: 1 }).lean<{ fetchedAt?: Date }>(),
+  ]);
   return {
     projects: projects.map((p) => ({ slug: p.slug, updatedAt: p.updatedAt })),
     caseStudies: caseStudies.map((c) => ({ slug: c.slug, updatedAt: c.updatedAt })),
-    updatedAt: { settings, about, experiences, skills, engineering, built },
+    posts: posts.map((p) => ({ slug: p.slug, updatedAt: p.updatedAt })),
+    skills: skillPages.map((s) => ({ slug: s.slug, updatedAt: s.updatedAt })),
+    updatedAt: {
+      settings,
+      about,
+      experiences,
+      skills,
+      engineering,
+      built,
+      blog: posts.reduce<Date | null>(
+        (latestDate, p) => (!latestDate || p.updatedAt > latestDate ? p.updatedAt : latestDate),
+        null,
+      ),
+      github: github?.fetchedAt ?? null,
+    },
   };
 }

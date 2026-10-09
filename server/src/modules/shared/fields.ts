@@ -80,3 +80,67 @@ export const mediaRefSchema = new Schema(
   },
   { _id: false },
 );
+
+/* Interactive architecture diagram (React Flow on the site): nodes + connections. */
+export const FLOW_NODE_KINDS = [
+  "client",
+  "frontend",
+  "service",
+  "database",
+  "cache",
+  "queue",
+  "external",
+  "infra",
+] as const;
+
+export const flowDiagram = z
+  .object({
+    nodes: z
+      .array(
+        z.object({
+          id: z
+            .string()
+            .trim()
+            .min(1, "Required")
+            .max(40)
+            .regex(/^[a-z0-9-]+$/, "Lowercase letters, numbers and dashes"),
+          label: requiredText(40),
+          kind: z.enum(FLOW_NODE_KINDS).default("service"),
+          description: text(400),
+        }),
+      )
+      .max(30)
+      .default([]),
+    edges: z
+      .array(
+        z.object({ from: z.string().trim().min(1), to: z.string().trim().min(1), label: text(40) }),
+      )
+      .max(60)
+      .default([]),
+  })
+  .superRefine((flow, ctx) => {
+    const ids = new Set<string>();
+    flow.nodes.forEach((node, i) => {
+      if (ids.has(node.id)) {
+        ctx.addIssue({ code: "custom", path: ["nodes", i, "id"], message: "Key must be unique" });
+      }
+      ids.add(node.id);
+    });
+    flow.edges.forEach((edge, i) => {
+      if (!ids.has(edge.from))
+        ctx.addIssue({ code: "custom", path: ["edges", i, "from"], message: "Unknown node" });
+      if (!ids.has(edge.to))
+        ctx.addIssue({ code: "custom", path: ["edges", i, "to"], message: "Unknown node" });
+    });
+  })
+  .default({ nodes: [], edges: [] });
+
+export const flowDiagramSchema = new Schema(
+  {
+    nodes: [
+      new Schema({ id: String, label: String, kind: String, description: String }, { _id: false }),
+    ],
+    edges: [new Schema({ from: String, to: String, label: String }, { _id: false })],
+  },
+  { _id: false },
+);

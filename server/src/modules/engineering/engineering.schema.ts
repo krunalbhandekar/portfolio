@@ -1,5 +1,12 @@
 import { z } from "zod";
-import { objectId, optionalSlug, requiredText, richText, text } from "../shared/fields.js";
+import {
+  flowDiagram,
+  objectId,
+  optionalSlug,
+  requiredText,
+  richText,
+  text,
+} from "../shared/fields.js";
 
 export const ENGINEERING_TYPES = ["architecture", "api", "database", "devops", "decision"] as const;
 export const HTTP_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"] as const;
@@ -51,6 +58,7 @@ export const engineeringInput = z.object({
   summary: text(300),
   content: richText(20_000),
   diagram: text(10_000),
+  flow: flowDiagram,
   projectId: z.union([z.null(), objectId]).default(null),
   api: apiSpec,
 });

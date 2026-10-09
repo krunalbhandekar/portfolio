@@ -1,3 +1,5 @@
+import type { FlowData } from "@/components/diagrams/flow-layout";
+
 /** Public API shapes (server/src/modules/public/public.service.ts). */
 
 export type Media = {
@@ -28,7 +30,20 @@ export type Settings = {
   avatar: Media | null;
   logo: Media | null;
   seo: { title: string; description: string; ogImage: Media | null };
+  recruiter: RecruiterFaq;
   updatedAt?: string;
+};
+
+/** Recruiter FAQ (Site Settings), shown on /hire. Empty answers are hidden. */
+export type RecruiterFaq = {
+  experience: string;
+  targetRoles: string;
+  noticePeriod: string;
+  workPreference: string;
+  preferredLocations: string;
+  relocation: string;
+  workAuthorization: string;
+  note: string;
 };
 
 export type ProjectCard = {
@@ -61,7 +76,7 @@ export type ProjectDetail = ProjectCard & {
   solution: string;
   contributions: string[];
   features: string[];
-  architecture: { description: string; diagram: string; image: Media | null };
+  architecture: { description: string; diagram: string; image: Media | null; flow: FlowData };
   challenges: { challenge: string; solution: string; result: string }[];
   decisions: { question: string; answer: string }[];
   metrics: { label: string; value: string }[];
@@ -172,6 +187,7 @@ export type HomeData = {
   about: Pick<About, "headline" | "story" | "portrait"> | null;
   caseStudies: CaseStudyCard[];
   testimonials: Testimonial[];
+  posts: PostCard[];
 };
 
 export type Resume = {
@@ -186,6 +202,8 @@ export type Resume = {
 export type SitemapData = {
   projects: { slug: string; updatedAt: string }[];
   caseStudies: { slug: string; updatedAt: string }[];
+  posts: { slug: string; updatedAt: string }[];
+  skills: { slug: string; updatedAt: string }[];
   updatedAt: Record<string, string | null>;
 };
 
@@ -219,6 +237,7 @@ export type EngineeringItem = {
   summary: string;
   content: string;
   diagram: string;
+  flow: FlowData;
   project: { title: string; slug: string } | null;
   api: {
     method: string;
@@ -278,4 +297,109 @@ export type Certification = {
   date: string | null;
   verifyUrl: string;
   description: string;
+};
+
+/* ---------------------------------------------------------------- Phase 6 */
+
+export type PostCard = {
+  _id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  coverImage: Media | null;
+  category: string;
+  tags: string[];
+  readingTime: number;
+  publishedAt: string | null;
+  updatedAt: string;
+};
+
+export type Post = PostCard & {
+  content: string;
+  crossPostUrl: string;
+  status: string;
+  createdAt: string;
+  seo: { title: string; description: string; noindex: boolean };
+  related: PostCard[];
+};
+
+export type PostList = {
+  items: PostCard[];
+  tags: { tag: string; count: number }[];
+};
+
+export type FeedPost = Pick<
+  Post,
+  "title" | "slug" | "excerpt" | "content" | "category" | "tags" | "publishedAt" | "updatedAt"
+>;
+
+export type SkillDetail = {
+  _id: string;
+  name: string;
+  slug: string;
+  category: string;
+  icon: string;
+  levelLabel: string;
+  years: number | null;
+  updatedAt: string;
+  projects: ProjectCard[];
+  features: { _id: string; feature: string; area: string; projectSlug: string | null }[];
+  experiences: {
+    _id: string;
+    company: string;
+    position: string;
+    startDate: string | null;
+    endDate: string | null;
+    isCurrent: boolean;
+  }[];
+  posts: PostCard[];
+};
+
+export type GithubRepo = {
+  name: string;
+  fullName: string;
+  description: string;
+  htmlUrl: string;
+  homepage: string;
+  stars: number;
+  forks: number;
+  language: string;
+  topics: string[];
+  pushedAt: string;
+};
+
+export type GithubData = {
+  username: string;
+  profile: {
+    name: string;
+    avatarUrl: string;
+    htmlUrl: string;
+    bio: string;
+    publicRepos: number;
+    followers: number;
+  };
+  pinned: GithubRepo[];
+  languages: { name: string; bytes: number; percent: number; color: string }[];
+  contributions: {
+    total: number;
+    weeks: { days: { date: string; count: number; level: number }[] }[];
+  } | null;
+  pullRequests: {
+    title: string;
+    url: string;
+    repo: string;
+    repoUrl: string;
+    merged: boolean;
+    createdAt: string;
+  }[];
+  totals: { repos: number; stars: number; followers: number };
+  fetchedAt: string;
+};
+
+export type SearchItem = {
+  type: "project" | "case-study" | "skill" | "post" | "engineering" | "page";
+  title: string;
+  subtitle: string;
+  href: string;
+  keywords: string;
 };

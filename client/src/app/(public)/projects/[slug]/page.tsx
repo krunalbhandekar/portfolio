@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, BookOpen, ExternalLink, KeyRound, Lock } from "lucide-react";
+import { FlowDiagram } from "@/components/diagrams/flow-diagram";
 import { MermaidDiagram } from "@/components/projects/mermaid-diagram";
 import { ProjectCard } from "@/components/projects/project-card";
 import { VideoEmbed } from "@/components/projects/video-embed";
@@ -19,6 +20,7 @@ import { getProject, getProjects, getSettings, getSkills, skillNames } from "@/l
 import { CATEGORY_LABELS, formatPeriod, STATUS_LABELS } from "@/lib/format";
 import { absoluteUrl, breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 import { cn } from "@/lib/utils";
+import { TrackView } from "@/components/layout/track-view";
 
 const PLACEHOLDER = "__placeholder__";
 
@@ -86,6 +88,7 @@ async function ProjectContent({ params }: { params: Promise<{ slug: string }> })
 
   return (
     <article className="container-page flex flex-col gap-14 py-12">
+      <TrackView type="project_view" refId={project.slug} />
       <JsonLd
         data={[
           breadcrumbJsonLd([
@@ -232,7 +235,8 @@ async function ProjectContent({ params }: { params: Promise<{ slug: string }> })
           ) : null}
           {project.architecture.description ||
           project.architecture.diagram ||
-          project.architecture.image ? (
+          project.architecture.image ||
+          project.architecture.flow.nodes.length ? (
             <Section title="Architecture">
               <RichText html={project.architecture.description} />
               {project.architecture.image ? (
@@ -244,6 +248,9 @@ async function ProjectContent({ params }: { params: Promise<{ slug: string }> })
                   sizes="(min-width: 1100px) 750px, 100vw"
                   className="h-auto w-full rounded-2xl border bg-white"
                 />
+              ) : null}
+              {project.architecture.flow.nodes.length ? (
+                <FlowDiagram flow={project.architecture.flow} title={project.title} />
               ) : null}
               {project.architecture.diagram ? (
                 <MermaidDiagram source={project.architecture.diagram} title={project.title} />
@@ -349,7 +356,11 @@ async function ProjectContent({ params }: { params: Promise<{ slug: string }> })
               <ul className="flex flex-wrap gap-1.5">
                 {project.technologies.map((slug) => (
                   <li key={slug}>
-                    <TechChip slug={slug} label={names.get(slug) ?? slug} />
+                    <TechChip
+                      slug={slug}
+                      label={names.get(slug) ?? slug}
+                      href={names.has(slug) ? `/skills/${slug}` : undefined}
+                    />
                   </li>
                 ))}
               </ul>

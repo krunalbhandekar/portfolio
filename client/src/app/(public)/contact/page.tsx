@@ -45,7 +45,7 @@ export default async function ContactPage() {
               <a href={`mailto:${settings.email}`} className="hover:underline">
                 {settings.email}
               </a>
-              <CopyButton value={settings.email} label="Copy email address" />
+              <CopyButton value={settings.email} label="Copy email address" toast="Email copied" />
             </li>
           ) : null}
           {settings.location ? (

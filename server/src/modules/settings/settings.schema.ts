@@ -11,6 +11,17 @@ export const SOCIAL_PLATFORMS = [
   "other",
 ] as const;
 
+export const RECRUITER_DEFAULTS = {
+  experience: "",
+  targetRoles: "",
+  noticePeriod: "",
+  workPreference: "",
+  preferredLocations: "",
+  relocation: "",
+  workAuthorization: "",
+  note: "",
+};
+
 export const settingsInput = z.object({
   name: requiredText(80),
   role: requiredText(80),
@@ -47,4 +58,17 @@ export const settingsInput = z.object({
   seo: z
     .object({ title: text(70), description: text(160), ogImage: nullableMediaRef })
     .default({ title: "", description: "", ogImage: null }),
+  /** Recruiter FAQ (portfolio.md §4 #17), shown on /hire. Empty answers are hidden. */
+  recruiter: z
+    .object({
+      experience: text(60),
+      targetRoles: text(120),
+      noticePeriod: text(60),
+      workPreference: text(80),
+      preferredLocations: text(120),
+      relocation: text(80),
+      workAuthorization: text(120),
+      note: text(300),
+    })
+    .default(RECRUITER_DEFAULTS),
 });

@@ -24,6 +24,9 @@ export const mediaRoutes = Router()
     );
     sendSuccess(res, items, { meta });
   })
+  .get("/usage", async (_req, res) => {
+    sendSuccess(res, await service.getCloudinaryUsage());
+  })
   .get("/folders", async (_req, res) => {
     sendSuccess(res, await service.listFolders());
   })

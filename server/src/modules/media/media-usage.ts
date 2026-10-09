@@ -9,9 +9,15 @@ const isPlainObject = (value: unknown): value is Record<string, unknown> => {
   return proto === Object.prototype || proto === null;
 };
 
-/** Finds every `mediaId` inside a (plain) document, however deeply nested. */
+/**
+ * Finds every `mediaId` inside a (plain) document, however deeply nested, plus media inserted
+ * into rich-text HTML.
+ */
 export function collectMediaIds(value: unknown, found = new Set<string>()): string[] {
-  if (Array.isArray(value)) {
+  if (typeof value === "string") {
+    // Images/files inserted into rich text carry `data-media-id="<id>"`.
+    for (const match of value.matchAll(/data-media-id="([a-f\d]{24})"/gi)) found.add(match[1]!);
+  } else if (Array.isArray(value)) {
     for (const item of value) collectMediaIds(item, found);
   } else if (isPlainObject(value)) {
     const record = value;

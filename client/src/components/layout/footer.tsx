@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { cacheLife } from "next/cache";
+import { Contact } from "lucide-react";
 import { CopyButton } from "@/components/shared/copy-button";
 import { SocialIcon, isSocialIcon } from "@/components/shared/social-icon";
 import { StatusBadge } from "@/components/shared/status-badge";
@@ -41,7 +42,7 @@ export async function Footer({ settings }: { settings: Settings }) {
               <a href={`mailto:${settings.email}`} className={linkClass}>
                 {settings.email}
               </a>
-              <CopyButton value={settings.email} label="Copy email address" />
+              <CopyButton value={settings.email} label="Copy email address" toast="Email copied" />
             </div>
           ) : null}
         </div>
@@ -72,14 +73,26 @@ export async function Footer({ settings }: { settings: Settings }) {
               </a>
             </li>
           ))}
+          <li>
+            <a href="/vcard.vcf" download className={`${linkClass} inline-flex items-center gap-2`}>
+              <Contact className="size-3.5" aria-hidden="true" /> Save contact
+            </a>
+          </li>
         </FooterColumn>
 
         <FooterColumn title="Resources">
           {footerResources.map((item) => (
             <li key={item.href}>
-              <Link href={item.href} className={linkClass} prefetch={false}>
-                {item.label}
-              </Link>
+              {/* Feeds/files are route handlers, not pages: plain links (full load). */}
+              {/\.(xml|vcf)$/.test(item.href) ? (
+                <a href={item.href} className={linkClass}>
+                  {item.label}
+                </a>
+              ) : (
+                <Link href={item.href} className={linkClass} prefetch={false}>
+                  {item.label}
+                </Link>
+              )}
             </li>
           ))}
         </FooterColumn>

@@ -135,7 +135,11 @@ export default async function ExperiencePage() {
                   <ul className="flex flex-wrap gap-1.5" aria-label="Technologies">
                     {role.technologies.map((slug) => (
                       <li key={slug}>
-                        <TechChip slug={slug} label={names.get(slug) ?? slug} />
+                        <TechChip
+                          slug={slug}
+                          label={names.get(slug) ?? slug}
+                          href={names.has(slug) ? `/skills/${slug}` : undefined}
+                        />
                       </li>
                     ))}
                   </ul>

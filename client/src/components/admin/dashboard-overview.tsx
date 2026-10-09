@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useCurrentAdmin } from "@/hooks/use-auth";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { AnalyticsPanel } from "./analytics-panel";
 
 type DashboardData = {
   lastLoginAt: string | null;
@@ -28,6 +29,7 @@ const ADMIN_PATH: Record<string, string> = {
   experiences: "experience",
   "built-features": "built",
   resumes: "resume",
+  posts: "blog",
 };
 const adminHref = (resource: string, id?: string) =>
   `/admin/${ADMIN_PATH[resource] ?? resource}${id ? `/${id}` : ""}`;
@@ -171,7 +173,9 @@ export function DashboardOverview() {
                 const linkable =
                   e.entityId &&
                   verb !== "delete" &&
-                  !["settings", "homepage", "about", "media", "messages"].includes(resource);
+                  !["settings", "homepage", "about", "media", "messages", "github"].includes(
+                    resource,
+                  );
                 const text = (
                   <>
                     <span className="text-muted-foreground">{VERBS[verb] ?? verb}</span>{" "}
@@ -203,6 +207,8 @@ export function DashboardOverview() {
           )}
         </section>
       </div>
+
+      <AnalyticsPanel />
     </div>
   );
 }

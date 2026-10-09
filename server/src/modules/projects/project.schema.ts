@@ -1,5 +1,6 @@
 import { z } from "zod";
 import {
+  flowDiagram,
   httpUrl,
   mediaRef,
   nullableDate,
@@ -59,8 +60,13 @@ export const projectInput = z.object({
   contributions: stringList(30, 300),
   features: stringList(40, 200),
   architecture: z
-    .object({ description: richText(), diagram: text(10_000), image: nullableMediaRef })
-    .default({ description: "", diagram: "", image: null }),
+    .object({
+      description: richText(),
+      diagram: text(10_000),
+      image: nullableMediaRef,
+      flow: flowDiagram,
+    })
+    .default({ description: "", diagram: "", image: null, flow: { nodes: [], edges: [] } }),
   challenges: z
     .array(
       z.object({ challenge: requiredText(500), solution: requiredText(1000), result: text(500) }),

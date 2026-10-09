@@ -9,6 +9,7 @@ import { Certification } from "../certifications/certification.model.js";
 import { EngineeringItem } from "../engineering/engineering.model.js";
 import { Experience } from "../experiences/experience.model.js";
 import { Message } from "../messages/message.model.js";
+import { Post } from "../posts/post.model.js";
 import { Project } from "../projects/project.model.js";
 import { Resume } from "../resumes/resume.model.js";
 import { Skill } from "../skills/skill.model.js";
@@ -19,6 +20,7 @@ import type { Types } from "mongoose";
 const COUNTED: [key: string, label: string, model: Model<any>][] = [
   ["projects", "Projects", Project],
   ["case-studies", "Case studies", CaseStudy],
+  ["posts", "Blog posts", Post],
   ["engineering", "Engineering", EngineeringItem],
   ["built-features", "What I Built", BuiltFeature],
   ["experiences", "Experience", Experience],

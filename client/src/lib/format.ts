@@ -7,6 +7,17 @@ const monthYear = new Intl.DateTimeFormat("en", {
 export const formatMonth = (value: string | null | undefined) =>
   value ? monthYear.format(new Date(value)) : "";
 
+const dayMonthYear = new Intl.DateTimeFormat("en", {
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+  timeZone: "UTC",
+});
+
+/** e.g. "9 Oct 2026" (UTC, so server and browser agree). */
+export const formatDate = (value: string | null | undefined) =>
+  value ? dayMonthYear.format(new Date(value)) : "";
+
 export function formatPeriod(
   start: string | null | undefined,
   end: string | null | undefined,

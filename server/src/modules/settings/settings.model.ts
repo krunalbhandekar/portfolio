@@ -19,6 +19,16 @@ const settingsSchema = new Schema(
     logo: mediaRefSchema,
     avatar: mediaRefSchema,
     seo: sub({ title: String, description: String, ogImage: mediaRefSchema }),
+    recruiter: sub({
+      experience: String,
+      targetRoles: String,
+      noticePeriod: String,
+      workPreference: String,
+      preferredLocations: String,
+      relocation: String,
+      workAuthorization: String,
+      note: String,
+    }),
   },
   { timestamps: true },
 );

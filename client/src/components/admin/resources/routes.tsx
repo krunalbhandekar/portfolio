@@ -3,6 +3,7 @@
 import { use } from "react";
 import { notFound } from "next/navigation";
 import { aboutConfig } from "../modules/about";
+import { githubConfig } from "../modules/github";
 import { homepageConfig } from "../modules/homepage";
 import { resourceRegistry } from "../modules/registry";
 import { settingsConfig } from "../modules/settings";
@@ -36,3 +37,4 @@ export function ResourceEditorRoute({
 export const SettingsEditor = () => <SingletonEditor config={settingsConfig} />;
 export const HomepageEditor = () => <SingletonEditor config={homepageConfig} />;
 export const AboutEditor = () => <SingletonEditor config={aboutConfig} />;
+export const GithubEditor = () => <SingletonEditor config={githubConfig} />;

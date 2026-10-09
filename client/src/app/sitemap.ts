@@ -67,6 +67,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
       priority: 0.7,
     },
+    ...data.skills.map((sk) => ({
+      url: absoluteUrl(`/skills/${sk.slug}`),
+      lastModified: at(sk.updatedAt),
+      changeFrequency: "monthly" as const,
+      priority: 0.5,
+    })),
+    {
+      url: absoluteUrl("/blog"),
+      lastModified: at(data.updatedAt.blog),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    ...data.posts.map((p) => ({
+      url: absoluteUrl(`/blog/${p.slug}`),
+      lastModified: at(p.updatedAt),
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    })),
+    {
+      url: absoluteUrl("/github"),
+      lastModified: at(data.updatedAt.github),
+      changeFrequency: "weekly",
+      priority: 0.5,
+    },
+    { url: absoluteUrl("/hire"), changeFrequency: "monthly", priority: 0.6 },
     { url: absoluteUrl("/resume"), changeFrequency: "monthly", priority: 0.6 },
     { url: absoluteUrl("/contact"), changeFrequency: "yearly", priority: 0.5 },
   ];

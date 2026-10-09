@@ -15,6 +15,7 @@ import {
   TextField,
   TextareaField,
 } from "../kit/fields";
+import { FlowField } from "../kit/flow-field";
 import { FormSection } from "../kit/layout";
 import { ReferenceSelectField } from "../kit/reference-fields";
 import { RichTextField } from "../kit/rich-text-field";
@@ -160,6 +161,13 @@ function ProjectFields() {
         <MediaField name="architecture.image" label="Diagram image" folder={folder} wide />
       </FormSection>
 
+      <FormSection
+        title="Interactive architecture diagram"
+        description="Optional. Shown on the project page with zoom/pan; visitors click a component to read what it does."
+      >
+        <FlowField name="architecture.flow" />
+      </FormSection>
+
       <FormSection title="Engineering challenges">
         <RepeaterField
           name="challenges"
@@ -286,7 +294,12 @@ export const projectsConfig: ResourceConfig = {
     solution: "",
     contributions: [],
     features: [],
-    architecture: { description: "", diagram: "", image: null },
+    architecture: {
+      description: "",
+      diagram: "",
+      image: null,
+      flow: { nodes: [], edges: [] },
+    },
     challenges: [],
     decisions: [],
     metrics: [],

@@ -6,7 +6,7 @@ import {
   getAbout,
   getExperiences,
   getHome,
-  getResume,
+  getResumes,
   getSettings,
   getSkills,
 } from "@/lib/data/public";
@@ -33,9 +33,9 @@ function Heading({ children }: { children: React.ReactNode }) {
 
 /** Web resume rendered from the same CMS data (portfolio.md §3.17), print-friendly. */
 export default async function ResumePage() {
-  const [settings, resume, experiences, { skills }, about, home] = await Promise.all([
+  const [settings, resumes, experiences, { skills }, about, home] = await Promise.all([
     getSettings(),
-    getResume(),
+    getResumes(),
     getExperiences(),
     getSkills(),
     getAbout(),
@@ -68,7 +68,7 @@ export default async function ResumePage() {
         <h1 className="text-4xl font-semibold tracking-tight">{settings.name}</h1>
         <p className="text-lg text-muted-foreground">{settings.role}</p>
         <p className="font-mono text-xs text-muted-foreground">{contact.join("  ·  ")}</p>
-        <ResumeActions resume={resume} />
+        <ResumeActions resumes={resumes} />
       </header>
 
       {settings.tagline ? (

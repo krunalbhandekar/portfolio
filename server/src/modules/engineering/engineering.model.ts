@@ -1,5 +1,6 @@
 import { model, Schema } from "mongoose";
 import { contentFieldsPlugin } from "../../plugins/content-fields.js";
+import { flowDiagramSchema } from "../shared/fields.js";
 import { sub } from "../shared/mongoose.js";
 
 const engineeringSchema = new Schema({
@@ -9,6 +10,7 @@ const engineeringSchema = new Schema({
   summary: String,
   content: String,
   diagram: String,
+  flow: flowDiagramSchema,
   projectId: { type: Schema.Types.ObjectId, ref: "Project" },
   api: sub({
     method: String,

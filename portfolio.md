@@ -1166,35 +1166,48 @@ Configured in the cron-job.org dashboard. Each job sends a `POST` with the `x-jo
 **Depends on:** Phase 5. **Spec:** [3.11](#311-github-integration), [3.15](#315-blog--technical-articles), [4](#4-additional-features-suggested) (#1–4, #8, #10–11, #18)
 
 **Server**
-- [ ] `posts` model + routes (tags, categories, search, pagination); text index
-- [ ] GitHub service + `githubCache`; `POST /jobs/github-sync` (with `x-jobs-secret`) and `POST /admin/github/refresh`
-- [ ] `GET /search?q=` across projects, case studies, skills, posts, engineering
-- [ ] `events` model (TTL) + `POST /events`; resume download counting; `GET /admin/analytics`
-- [ ] `GET /admin/media/usage` (Cloudinary credit usage)
-- [ ] `skills/:slug` public route with linked projects, features and posts
+- [x] `posts` model + routes (tags, categories, search, pagination); text index
+- [x] GitHub service + `githubCache`; `POST /jobs/github-sync` (with `x-jobs-secret`) and `POST /admin/github/refresh`
+- [x] `GET /search?q=` across projects, case studies, skills, posts, engineering
+- [x] `events` model (TTL) + `POST /events`; resume download counting; `GET /admin/analytics`
+- [x] `GET /admin/media/usage` (Cloudinary credit usage)
+- [x] `skills/:slug` public route with linked projects, features and posts
 
 **Client — admin**
-- [ ] Blog module (Tiptap with code blocks, cover image, tags, publish)
-- [ ] GitHub module (username, pinned repo selection, manual refresh)
-- [ ] Dashboard v2: views, top projects, resume downloads per version, referrers, Cloudinary usage widget (warn at 80%)
-- [ ] Recruiter FAQ fields in settings (notice period, relocation, work authorization)
+- [x] Blog module (Tiptap with code blocks, cover image, tags, publish)
+- [x] GitHub module (username, pinned repo selection, manual refresh)
+- [x] Dashboard v2: views, top projects, resume downloads per version, referrers, Cloudinary usage widget (warn at 80%)
+- [x] Recruiter FAQ fields in settings (notice period, relocation, work authorization)
 
 **Client — public**
-- [ ] **Blog** list + post pages (Shiki, TOC, reading time, related posts, `BlogPosting` JSON-LD), **RSS** feed
-- [ ] **GitHub** section: pinned repos, contribution graph, language breakdown, OSS contributions
-- [ ] **⌘K command palette** (navigation + search; admin pages excluded)
-- [ ] **Recruiter Quick View** `/hire`
-- [ ] **Skill pages** `/skills/[slug]` (long-tail SEO)
-- [ ] **Interactive architecture diagrams** (React Flow: zoom/pan, click node for details)
-- [ ] Role-tailored resume links (`/resume?v=backend`), vCard download, copy email toast
+- [x] **Blog** list + post pages (Shiki, TOC, reading time, related posts, `BlogPosting` JSON-LD), **RSS** feed
+- [x] **GitHub** section: pinned repos, contribution graph, language breakdown, OSS contributions
+- [x] **⌘K command palette** (navigation + search; admin pages excluded)
+- [x] **Recruiter Quick View** `/hire`
+- [x] **Skill pages** `/skills/[slug]` (long-tail SEO)
+- [x] **Interactive architecture diagrams** (React Flow: zoom/pan, click node for details)
+- [x] Role-tailored resume links (`/resume?v=backend`), vCard download, copy email toast
 
 **cron-job.org**
 - [ ] Daily GitHub sync job configured
 
 **Done when**
-- [ ] ⌘K finds any published project, post or skill and is fully keyboard operable
+- [x] ⌘K finds any published project, post or skill and is fully keyboard operable
 - [ ] GitHub data refreshes daily without hitting rate limits
-- [ ] Resume downloads and project views appear on the dashboard
+- [x] Resume downloads and project views appear on the dashboard
+
+**Implementation notes**
+- **Blog**: `posts` collection (text index on title/excerpt/tags/content; `{status, publishedAt}` index). Reading time computed on save; `publishedAt` stamped on first publish (editable to back-date). Public `GET /posts?tag&category&q&page&limit`, `GET /posts/:slug` (related = most shared tags, topped up with latest), `GET /feed`, draft preview via `/preview/posts/:slug`. Code blocks: the editor has a language picker; the site splits code out of the sanitised HTML and highlights it with Shiki on the server (copy button, no client highlighter). H2/H3 get ids → sticky TOC. `BlogPosting` JSON-LD, per-post OG image, `/rss.xml` (RSS 2.0 with full content), RSS `<link rel="alternate">`. Tagging a post with a skill slug lists it on that skill's page.
+- **⌘K palette**: only a tiny shortcut listener ships with each page; the palette loads on first ⌘K / Ctrl+K / "/" / navbar click. It filters a cached index served by Next (`/api/search-index`, revalidated by content tags), so it works while Render sleeps. Native `<dialog>` + ARIA combobox/listbox; ↑/↓/Home/End/Enter/Esc. Admin pages are never listed. `GET /search?q=` also exists server-side.
+- **Analytics** (no cookies, no IP/UA stored): `events` with a 180-day TTL; `POST /events` (rate-limited, bots/headless browsers ignored, `/admin` paths rejected, referrer reduced to its host). The site skips tracking in Draft Mode and while the admin is signed in. `GET /admin/analytics?days=7|30|90`: daily views, top pages, referrers, top projects/posts/case studies, resume downloads per version (period + all time), contact messages.
+- **GitHub**: settings singleton (`/admin/github/settings`) + `githubCache`. Sync = profile, owned repos, language bytes across the 20 most recently pushed own repos, merged PRs to other people's repos (search API), and the contribution calendar via GraphQL **only with `GITHUB_TOKEN`**. Failures keep the previous data and are shown in the admin. Triggered by `POST /jobs/github-sync` (`x-jobs-secret: JOBS_SECRET`, timing-safe) or "Refresh now". Public `/github` page + live contribution graph in the home "github" bento card.
+- **Cloudinary usage**: `GET /admin/media/usage` (Admin API, cached 10 min); widget warns at 80% of monthly credits.
+- **/hire**: recruiter FAQ (Site Settings → Recruiter FAQ), availability, primary stack, top 3 projects, every resume version, email copy (toast), LinkedIn, booking link, vCard (`/vcard.vcf`).
+- **Resume versions**: `/resume?v=<key>` picks the version on the client (page stays static); `GET /resumes` lists published versions; admin shows a copyable share link per version.
+- **Skill pages** `/skills/[slug]`: projects (explicit links or technology), "What I Built" features, jobs and tagged posts; tech chips across the site link to them.
+- **Interactive diagrams**: optional `flow {nodes, edges}` on projects (architecture) and engineering entries; validated server-side (unique keys, edges must reference nodes). React Flow (`@xyflow/react`) loads only when the diagram scrolls into view; automatic layered layout; click/Enter on a node shows its description and connections; "Diagram as text" is always in the HTML. Admin editor has a live preview.
+- Found and fixed while testing: the Phase 5 testimonials carousel (`snap-mandatory` + CSS `scroll-smooth`) made Chrome stop measuring LCP on mobile (Lighthouse "NO_LCP"). Now home 96 / 100 / 100 / 100 (local mobile).
+- Verified: 57 API checks and 47 browser checks on a production build (one real GitHub sync), Lighthouse mobile: Home 96, blog post 95, /hire 96; Accessibility/Best Practices/SEO 100.
 
 **Not in this phase:** revisions, redirects, scheduled publishing, backups.
 

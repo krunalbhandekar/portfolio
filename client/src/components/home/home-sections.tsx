@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, BadgeCheck, MapPin } from "lucide-react";
+import { PostCard } from "@/components/blog/post-card";
+import { ContributionGraph } from "@/components/github/contribution-graph";
 import { CaseStudyCard } from "@/components/case-studies/case-study-card";
 import { Reveal } from "@/components/motion/reveal";
 import { ProjectCard } from "@/components/projects/project-card";
@@ -13,7 +15,7 @@ import { TechChip } from "@/components/shared/tech-chip";
 import { TestimonialAvatar } from "@/components/testimonials/testimonial-avatar";
 import { Timeline, TimelineItem } from "@/components/shared/timeline";
 import { buttonVariants } from "@/components/ui/button";
-import type { HomeData, Settings } from "@/lib/data/types";
+import type { GithubData, HomeData, Settings } from "@/lib/data/types";
 import { excerpt, formatPeriod } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { TestimonialsCarousel } from "./testimonials-carousel";
@@ -23,6 +25,8 @@ export type SectionProps = {
   settings: Settings;
   names: Map<string, string>;
   index: string;
+  /** Cached GitHub data (null until the first sync); powers the "github" bento card. */
+  github: GithubData | null;
 };
 
 const ctaVariant = { primary: "default", outline: "outline", ghost: "ghost" } as const;
@@ -65,7 +69,11 @@ export function HeroSection({ home, settings, names }: SectionProps) {
         <ul className="flex flex-wrap gap-2" aria-label="Primary tech stack">
           {hero.stack.map((slug) => (
             <li key={slug}>
-              <TechChip slug={slug} label={names.get(slug) ?? slug} />
+              <TechChip
+                slug={slug}
+                label={names.get(slug) ?? slug}
+                href={names.has(slug) ? `/skills/${slug}` : undefined}
+              />
             </li>
           ))}
         </ul>
@@ -113,7 +121,7 @@ export function StatsSection({ home }: SectionProps) {
 
 const sizeClass = { sm: "", md: "sm:col-span-2", lg: "sm:col-span-2 lg:row-span-2" } as const;
 
-export function BentoSection({ home, settings, names }: SectionProps) {
+export function BentoSection({ home, settings, names, github: githubData }: SectionProps) {
   const cards = home.homepage.bento ?? [];
   if (!cards.length) return null;
   const github = settings.socials.find((s) => s.platform === "github");
@@ -158,8 +166,25 @@ export function BentoSection({ home, settings, names }: SectionProps) {
                   <p className="flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
                     <SocialIcon name="github" className="size-3.5" /> {card.title || "Open source"}
                   </p>
-                  <p className="mt-2 text-sm text-muted-foreground">{card.body}</p>
-                  {github || card.href ? (
+                  {card.body ? (
+                    <p className="mt-2 text-sm text-muted-foreground">{card.body}</p>
+                  ) : null}
+                  {githubData?.contributions ? (
+                    <div className="mt-3 flex flex-col gap-1.5">
+                      <ContributionGraph contributions={githubData.contributions} weeks={17} />
+                      <p className="font-mono text-xs text-muted-foreground">
+                        {githubData.contributions.total} contributions in the last year
+                      </p>
+                    </div>
+                  ) : null}
+                  {githubData ? (
+                    <Link
+                      href="/github"
+                      className="mt-3 inline-flex items-center gap-1 text-sm text-brand-text hover:underline"
+                    >
+                      GitHub activity <ArrowRight className="size-3.5" aria-hidden="true" />
+                    </Link>
+                  ) : github || card.href ? (
                     <a
                       href={card.href || github!.url}
                       target="_blank"
@@ -314,7 +339,11 @@ export function ExpertiseSection({ home, names, index }: SectionProps) {
                 <ul className="mt-4 flex flex-wrap gap-1.5">
                   {area.skills.map((slug) => (
                     <li key={slug}>
-                      <TechChip slug={slug} label={names.get(slug) ?? slug} />
+                      <TechChip
+                        slug={slug}
+                        label={names.get(slug) ?? slug}
+                        href={names.has(slug) ? `/skills/${slug}` : undefined}
+                      />
                     </li>
                   ))}
                 </ul>
@@ -414,6 +443,29 @@ export function TestimonialsSection({ home, index }: SectionProps) {
           </li>
         ))}
       </TestimonialsCarousel>
+    </section>
+  );
+}
+
+export function BlogSection({ home, index }: SectionProps) {
+  if (!home.posts.length) return null;
+  return (
+    <section className="container-page flex flex-col gap-8 py-16">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <SectionHeader index={index} eyebrow="Blog" title="Latest writing" />
+        <Link href="/blog" className={buttonVariants({ variant: "outline" })}>
+          All posts <ArrowRight aria-hidden="true" />
+        </Link>
+      </div>
+      <Reveal>
+        <ul className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {home.posts.map((post) => (
+            <li key={post._id}>
+              <PostCard post={post} />
+            </li>
+          ))}
+        </ul>
+      </Reveal>
     </section>
   );
 }

@@ -21,12 +21,14 @@ import { Experience } from "./experiences/experience.model.js";
 import { experienceInput } from "./experiences/experience.schema.js";
 import { Homepage } from "./homepage/homepage.model.js";
 import { HOMEPAGE_SECTIONS, homepageInput } from "./homepage/homepage.schema.js";
+import { Post } from "./posts/post.model.js";
+import { postInput, postReadingTime } from "./posts/post.schema.js";
 import { Project } from "./projects/project.model.js";
 import { projectInput } from "./projects/project.schema.js";
 import { Resume } from "./resumes/resume.model.js";
 import { resumeInput } from "./resumes/resume.schema.js";
 import { SiteSettings } from "./settings/settings.model.js";
-import { settingsInput } from "./settings/settings.schema.js";
+import { RECRUITER_DEFAULTS, settingsInput } from "./settings/settings.schema.js";
 import { Skill } from "./skills/skill.model.js";
 import { skillInput } from "./skills/skill.schema.js";
 import { Testimonial } from "./testimonials/testimonial.model.js";
@@ -59,6 +61,7 @@ export const contentRoutes = Router()
         logo: null,
         avatar: null,
         seo: { title: "", description: "", ogImage: null },
+        recruiter: RECRUITER_DEFAULTS,
       },
       tags: ["settings"],
     }),
@@ -263,5 +266,29 @@ export const contentRoutes = Router()
       searchFields: ["title", "institution"],
       sortable: ["title", "date", "type"],
       tags: () => ["certifications"],
+    }),
+  )
+  .use(
+    "/posts",
+    crudRouter({
+      resource: "posts",
+      model: Post,
+      input: postInput,
+      labelField: "title",
+      searchFields: ["title", "excerpt", "tags", "category"],
+      slugFrom: "title",
+      sortable: ["title", "publishedAt", "category"],
+      transform: (data) => ({ ...data, readingTime: postReadingTime(data.content) }),
+      // First publish stamps the publication date (kept on later edits/unpublish).
+      afterSave: async (doc) => {
+        if (doc.status === "published" && !doc.publishedAt) {
+          await Post.updateOne({ _id: doc._id }, { $set: { publishedAt: new Date() } });
+        }
+      },
+      tags: (doc, previous) => [
+        "posts",
+        `post:${String(doc.slug)}`,
+        ...(previous && previous.slug !== doc.slug ? [`post:${String(previous.slug)}`] : []),
+      ],
     }),
   );

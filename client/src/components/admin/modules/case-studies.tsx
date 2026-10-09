@@ -67,7 +67,11 @@ function CaseStudyFields() {
             <>
               <SelectField name={`${prefix}.type`} label="Type" options={CASE_STUDY_SECTIONS} />
               <TextField name={`${prefix}.heading`} label="Heading (optional)" />
-              <RichTextField name={`${prefix}.content`} label="Content" />
+              <RichTextField
+                name={`${prefix}.content`}
+                label="Content"
+                mediaFolder="portfolio/case-studies"
+              />
             </>
           )}
         />

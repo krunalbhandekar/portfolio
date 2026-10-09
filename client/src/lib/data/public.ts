@@ -1,8 +1,16 @@
 import { cacheLife, cacheTag } from "next/cache";
 import { draftMode } from "next/headers";
+import type { FlowData } from "@/components/diagrams/flow-layout";
 import { siteConfig } from "@/config/site";
 import type {
   About,
+  FeedPost,
+  GithubData,
+  Post,
+  PostCard,
+  PostList,
+  SearchItem,
+  SkillDetail,
   Achievement,
   BuiltFeature,
   CaseStudy,
@@ -93,6 +101,11 @@ async function draftAware(
   };
 }
 
+const normalizeFlow = (flow: Partial<FlowData> | null | undefined): FlowData => ({
+  nodes: arr(flow?.nodes),
+  edges: arr(flow?.edges),
+});
+
 function normalizeProject(p: ProjectDetail): ProjectDetail {
   return {
     ...normalizeCard(p),
@@ -112,6 +125,7 @@ function normalizeProject(p: ProjectDetail): ProjectDetail {
       description: p.architecture?.description ?? "",
       diagram: p.architecture?.diagram ?? "",
       image: p.architecture?.image ?? null,
+      flow: normalizeFlow(p.architecture?.flow),
     },
     challenges: arr(p.challenges),
     decisions: arr(p.decisions),
@@ -169,6 +183,16 @@ export const fallbackSettings: Settings = {
   avatar: null,
   logo: null,
   seo: { title: "", description: "", ogImage: null },
+  recruiter: {
+    experience: "",
+    targetRoles: "",
+    noticePeriod: "",
+    workPreference: "",
+    preferredLocations: "",
+    relocation: "",
+    workAuthorization: "",
+    note: "",
+  },
 };
 
 export async function getSettings(): Promise<Settings> {
@@ -180,6 +204,7 @@ export async function getSettings(): Promise<Settings> {
     ...fallbackSettings,
     ...settings,
     availabilityText: settings.availabilityText ?? "",
+    recruiter: { ...fallbackSettings.recruiter, ...settings.recruiter },
   };
 }
 
@@ -193,6 +218,7 @@ export async function getHome(): Promise<HomeData> {
     "about",
     "case-studies",
     "testimonials",
+    "posts",
   );
   const home = settle(await fetchPublic<HomeData>("/home"), {
     homepage: { sections: [] },
@@ -202,6 +228,7 @@ export async function getHome(): Promise<HomeData> {
     about: null,
     caseStudies: [],
     testimonials: [],
+    posts: [],
   });
   return {
     homepage: { ...home.homepage, sections: arr(home.homepage?.sections) },
@@ -217,6 +244,7 @@ export async function getHome(): Promise<HomeData> {
       : null,
     caseStudies: arr(home.caseStudies),
     testimonials: arr(home.testimonials),
+    posts: arr(home.posts).map(normalizePostCard),
   };
 }
 
@@ -286,13 +314,22 @@ export async function getSitemapData(): Promise<SitemapData> {
     "case-studies",
     "engineering",
     "built",
+    "posts",
+    "github",
   );
   const data = settle(await fetchPublic<SitemapData>("/sitemap-data"), {
     projects: [],
     caseStudies: [],
+    posts: [],
+    skills: [],
     updatedAt: {},
   });
-  return { ...data, caseStudies: arr(data.caseStudies) };
+  return {
+    ...data,
+    caseStudies: arr(data.caseStudies),
+    posts: arr(data.posts),
+    skills: arr(data.skills),
+  };
 }
 
 /** Skill slug → display name, for tech chips stored as slugs. */
@@ -338,6 +375,7 @@ export async function getEngineering(): Promise<EngineeringItem[]> {
     summary: item.summary ?? "",
     content: item.content ?? "",
     diagram: item.diagram ?? "",
+    flow: normalizeFlow(item.flow),
     api: {
       method: item.api?.method ?? "GET",
       path: item.api?.path ?? "",
@@ -375,4 +413,97 @@ export async function getCertifications(): Promise<Certification[]> {
   "use cache";
   cacheTag("certifications");
   return arr(settle(await fetchPublic<Certification[]>("/certifications"), []));
+}
+
+/* ---------------------------------------------------------------- Phase 6 */
+
+function normalizePostCard<T extends PostCard>(p: T): T {
+  return {
+    ...p,
+    excerpt: p.excerpt ?? "",
+    category: p.category ?? "",
+    tags: arr(p.tags),
+    coverImage: p.coverImage ?? null,
+    readingTime: p.readingTime ?? 1,
+    publishedAt: p.publishedAt ?? null,
+  };
+}
+
+/** Every published post (small blog: the list page filters by tag/search on the client). */
+export async function getPosts(): Promise<PostList> {
+  "use cache";
+  cacheTag("posts");
+  const data = settle(await fetchPublic<PostList>("/posts?limit=100"), { items: [], tags: [] });
+  return { items: arr(data.items).map(normalizePostCard), tags: arr(data.tags) };
+}
+
+export async function getPost(slug: string): Promise<Post | null> {
+  "use cache";
+  cacheTag("posts", `post:${slug}`);
+  const source = await draftAware(
+    `/posts/${encodeURIComponent(slug)}`,
+    `/preview/posts/${encodeURIComponent(slug)}`,
+  );
+  const post = settle(await fetchPublic<Post>(source.path, source.headers), null);
+  if (!post) return null;
+  return {
+    ...normalizePostCard(post),
+    content: post.content ?? "",
+    crossPostUrl: post.crossPostUrl ?? "",
+    seo: {
+      title: post.seo?.title ?? "",
+      description: post.seo?.description ?? "",
+      noindex: post.seo?.noindex ?? false,
+    },
+    related: arr(post.related).map(normalizePostCard),
+  };
+}
+
+export async function getFeedPosts(): Promise<FeedPost[]> {
+  "use cache";
+  cacheTag("posts");
+  return arr(settle(await fetchPublic<FeedPost[]>("/feed"), []));
+}
+
+export async function getSkill(slug: string): Promise<SkillDetail | null> {
+  "use cache";
+  cacheTag("skills", `skill:${slug}`, "projects", "posts", "built", "experiences");
+  const skill = settle(await fetchPublic<SkillDetail>(`/skills/${encodeURIComponent(slug)}`), null);
+  if (!skill) return null;
+  return {
+    ...skill,
+    levelLabel: skill.levelLabel ?? "",
+    years: skill.years ?? null,
+    projects: arr(skill.projects).map(normalizeCard),
+    features: arr(skill.features),
+    experiences: arr(skill.experiences),
+    posts: arr(skill.posts).map(normalizePostCard),
+  };
+}
+
+export async function getGithub(): Promise<GithubData | null> {
+  "use cache";
+  cacheTag("github");
+  const data = settle(await fetchPublic<GithubData>("/github"), null);
+  if (!data) return null;
+  return {
+    ...data,
+    pinned: arr(data.pinned).map((r) => ({ ...r, topics: arr(r.topics) })),
+    languages: arr(data.languages),
+    pullRequests: arr(data.pullRequests),
+  };
+}
+
+/** ⌘K palette index (titles + context of every published item). */
+export async function getSearchIndex(): Promise<SearchItem[]> {
+  "use cache";
+  cacheTag("projects", "case-studies", "skills", "posts", "engineering");
+  return arr(settle(await fetchPublic<SearchItem[]>("/search-index"), []));
+}
+
+/** All published resume versions (role-tailored links, /hire). */
+export async function getResumes(): Promise<(Resume & { isDefault: boolean })[]> {
+  "use cache";
+  cacheTag("resumes");
+  return arr(settle(await fetchPublic<(Resume & { isDefault: boolean })[]>("/resumes"), []));
 }

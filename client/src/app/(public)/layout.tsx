@@ -1,7 +1,10 @@
+import { Suspense } from "react";
 import Link from "next/link";
+import { CommandPaletteLoader } from "@/components/layout/command-palette-loader";
 import { Footer } from "@/components/layout/footer";
 import { Navbar } from "@/components/layout/navbar";
 import { PreviewBanner } from "@/components/layout/preview-banner";
+import { PageViewTracker } from "@/components/layout/track-view";
 import { getSettings } from "@/lib/data/public";
 
 export default async function PublicLayout({ children }: LayoutProps<"/">) {
@@ -29,6 +32,10 @@ export default async function PublicLayout({ children }: LayoutProps<"/">) {
         {children}
       </main>
       <Footer settings={settings} />
+      <CommandPaletteLoader />
+      <Suspense fallback={null}>
+        <PageViewTracker />
+      </Suspense>
     </>
   );
 }

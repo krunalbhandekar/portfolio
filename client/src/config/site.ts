@@ -18,11 +18,12 @@ export const siteConfig = {
   ],
 } as const;
 
-/** Only pages that exist. Blog joins in Phase 6. */
+/** Only pages that exist. Everything else is one ⌘K away. */
 export const mainNav = [
   { label: "Projects", href: "/projects" },
   { label: "Case Studies", href: "/case-studies" },
   { label: "Engineering", href: "/engineering" },
+  { label: "Blog", href: "/blog" },
   { label: "Experience", href: "/experience" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
@@ -32,5 +33,8 @@ export const footerResources = [
   { label: "Resume", href: "/resume" },
   { label: "Skills", href: "/skills" },
   { label: "What I Built", href: "/built" },
+  { label: "GitHub", href: "/github" },
+  { label: "Hire me", href: "/hire" },
+  { label: "RSS", href: "/rss.xml" },
   { label: "Sitemap", href: "/sitemap.xml" },
 ] as const;

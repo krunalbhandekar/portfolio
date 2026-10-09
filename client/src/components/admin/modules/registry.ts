@@ -1,4 +1,5 @@
 import type { ResourceConfig } from "../resources/types";
+import { blogConfig } from "./blog";
 import { caseStudiesConfig } from "./case-studies";
 import {
   achievementsConfig,
@@ -18,6 +19,7 @@ export const resourceRegistry: Record<string, ResourceConfig> = Object.fromEntri
     experienceConfig,
     projectsConfig,
     caseStudiesConfig,
+    blogConfig,
     engineeringConfig,
     builtFeaturesConfig,
     skillsConfig,

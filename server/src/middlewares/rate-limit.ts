@@ -32,3 +32,9 @@ export const contactLimiter = rateLimit({ ...base, windowMs: 60 * 60_000, limit:
 
 /** Visitor testimonial verify + submit (Google sign-in already limits abuse; this caps retries). */
 export const testimonialLimiter = rateLimit({ ...base, windowMs: 60 * 60_000, limit: 15 });
+
+/** Analytics beacons: generous (one per page view), just stops floods. */
+export const eventsLimiter = rateLimit({ ...base, windowMs: 60_000, limit: 60 });
+
+/** Server-side search (the palette normally filters a cached index on the client). */
+export const searchLimiter = rateLimit({ ...base, windowMs: 60_000, limit: 60 });

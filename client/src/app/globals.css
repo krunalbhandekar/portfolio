@@ -244,6 +244,16 @@ html[data-theme-pref="dark"] [data-theme-option="dark"] {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+.rich-text img {
+  height: auto;
+  max-width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: var(--muted);
+}
+.rich-text a[data-media-id]::before {
+  content: "📎 ";
+}
 .rich-text ul {
   list-style: disc;
   padding-left: 1.25rem;

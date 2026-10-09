@@ -66,7 +66,12 @@ export default async function SkillsPage() {
                         {icon ? (
                           <BrandIcon icon={icon} className="size-4 text-muted-foreground" />
                         ) : null}
-                        <span className="font-medium">{skill.name}</span>
+                        <Link
+                          href={`/skills/${skill.slug}`}
+                          className="font-medium hover:underline"
+                        >
+                          {skill.name}
+                        </Link>
                         {skill.levelLabel || skill.years ? (
                           <span className="ml-auto font-mono text-xs text-muted-foreground">
                             {[

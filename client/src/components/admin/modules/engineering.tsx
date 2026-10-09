@@ -4,6 +4,7 @@ import { useWatch } from "react-hook-form";
 import { slugify } from "@/lib/slug";
 import { RepeaterField, SelectField, SwitchField, TextField, TextareaField } from "../kit/fields";
 import { FormSection } from "../kit/layout";
+import { FlowField } from "../kit/flow-field";
 import { MermaidField } from "../kit/mermaid-field";
 import { ReferenceSelectField } from "../kit/reference-fields";
 import { RichTextField } from "../kit/rich-text-field";
@@ -42,9 +43,20 @@ function EngineeringFields() {
       </FormSection>
 
       {showDiagram ? (
-        <FormSection title="Diagram">
-          <MermaidField name="diagram" label="Mermaid diagram" />
-        </FormSection>
+        <>
+          <FormSection
+            title="Interactive diagram"
+            description="Zoom/pan diagram with clickable components (recommended for architecture and DevOps)."
+          >
+            <FlowField name="flow" />
+          </FormSection>
+          <FormSection
+            title="Mermaid diagram"
+            description="Optional static diagram from Mermaid source."
+          >
+            <MermaidField name="diagram" label="Mermaid diagram" />
+          </FormSection>
+        </>
       ) : null}
 
       {type === "api" ? (
@@ -136,6 +148,7 @@ export const engineeringConfig: ResourceConfig = {
     summary: "",
     content: "",
     diagram: "",
+    flow: { nodes: [], edges: [] },
     projectId: null,
     api: {
       method: "GET",

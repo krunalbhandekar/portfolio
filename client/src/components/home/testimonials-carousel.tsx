@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 /**
  * Native horizontal scroll with snap points (swipe/trackpad/keyboard work out of the box);
  * the buttons just scroll by one card. No carousel library.
+ *
+ * No CSS `scroll-smooth` and a matching `scroll-px-4`: otherwise the browser smooth-scrolls on
+ * load to satisfy the snap, and Chrome stops measuring LCP for the whole page.
  */
 export function TestimonialsCarousel({ children, count }: { children: ReactNode; count: number }) {
   const ref = useRef<HTMLUListElement>(null);
@@ -26,7 +29,7 @@ export function TestimonialsCarousel({ children, count }: { children: ReactNode;
         ref={ref}
         tabIndex={0}
         aria-label="Testimonials"
-        className="-mx-4 flex snap-x snap-mandatory [scrollbar-width:thin] gap-5 overflow-x-auto scroll-smooth px-4 pb-2 focus-visible:outline-offset-4"
+        className="-mx-4 flex snap-x snap-mandatory scroll-px-4 [scrollbar-width:thin] gap-5 overflow-x-auto px-4 pb-2 focus-visible:outline-offset-4"
       >
         {children}
       </ul>

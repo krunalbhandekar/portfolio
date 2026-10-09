@@ -1,6 +1,6 @@
 import { model, Schema } from "mongoose";
 import { contentFieldsPlugin } from "../../plugins/content-fields.js";
-import { mediaRefSchema } from "../shared/fields.js";
+import { flowDiagramSchema, mediaRefSchema } from "../shared/fields.js";
 import { sub } from "../shared/mongoose.js";
 
 const galleryItemSchema = mediaRefSchema.clone();
@@ -31,7 +31,12 @@ const projectSchema = new Schema({
   solution: String,
   contributions: [String],
   features: [String],
-  architecture: sub({ description: String, diagram: String, image: mediaRefSchema }),
+  architecture: sub({
+    description: String,
+    diagram: String,
+    image: mediaRefSchema,
+    flow: flowDiagramSchema,
+  }),
   challenges: [sub({ challenge: String, solution: String, result: String })],
   decisions: [sub({ question: String, answer: String })],
   metrics: [sub({ label: String, value: String })],

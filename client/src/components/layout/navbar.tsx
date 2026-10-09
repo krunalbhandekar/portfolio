@@ -3,6 +3,7 @@ import Link from "next/link";
 import { mainNav } from "@/config/site";
 import type { Media } from "@/lib/data/types";
 import { initials } from "@/lib/initials";
+import { CommandTrigger } from "./command-trigger";
 import { MobileNav } from "./mobile-nav";
 import { NavLink } from "./nav-link";
 import { ThemeToggle } from "./theme-toggle";
@@ -42,7 +43,7 @@ export function Navbar({ name, logo }: { name: string; logo?: Media | null }) {
           <span className="sr-only text-sm font-medium sm:not-sr-only">{name}</span>
         </Link>
 
-        <nav aria-label="Main" className="ml-auto hidden items-center gap-6 md:flex">
+        <nav aria-label="Main" className="ml-auto hidden items-center gap-5 lg:flex xl:gap-6">
           {mainNav.map((item) => (
             <NavLink key={item.href} href={item.href}>
               {item.label}
@@ -50,8 +51,8 @@ export function Navbar({ name, logo }: { name: string; logo?: Media | null }) {
           ))}
         </nav>
 
-        <div className="ml-auto flex items-center gap-1 md:ml-2">
-          {/* ⌘K command palette trigger returns in Phase 6 (components/layout/command-trigger.tsx). */}
+        <div className="ml-auto flex items-center gap-1 lg:ml-2">
+          <CommandTrigger className="mr-1" />
           <ThemeToggle />
           <MobileNav name={name} />
         </div>

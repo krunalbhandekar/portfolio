@@ -66,6 +66,43 @@ function SettingsFields() {
         />
       </FormSection>
 
+      <FormSection
+        title="Recruiter FAQ"
+        description="Answers shown on the /hire quick-view page. Leave any empty to hide it."
+      >
+        <TextField name="recruiter.experience" label="Experience" placeholder="4+ years" />
+        <TextField
+          name="recruiter.targetRoles"
+          label="Looking for"
+          placeholder="Senior Full-Stack / Backend Engineer"
+        />
+        <TextField name="recruiter.noticePeriod" label="Notice period" placeholder="30 days" />
+        <TextField
+          name="recruiter.workPreference"
+          label="Work mode"
+          placeholder="Remote or hybrid"
+        />
+        <TextField
+          name="recruiter.preferredLocations"
+          label="Preferred locations"
+          placeholder="Pune, Bengaluru, Remote (India)"
+        />
+        <TextField name="recruiter.relocation" label="Relocation" placeholder="Open to relocate" />
+        <TextField
+          name="recruiter.workAuthorization"
+          label="Work authorization"
+          placeholder="Indian citizen; no sponsorship needed in India"
+          wide
+        />
+        <TextareaField
+          name="recruiter.note"
+          label="Short note"
+          maxLength={300}
+          description="Optional line under the facts, e.g. what kind of team you want to join."
+          wide
+        />
+      </FormSection>
+
       <FormSection title="Theme">
         <ColorField
           name="accentColor"
@@ -149,6 +186,16 @@ export const settingsConfig: SingletonConfig = {
     logo: null,
     avatar: null,
     seo: { title: "", description: "", ogImage: null },
+    recruiter: {
+      experience: "",
+      targetRoles: "",
+      noticePeriod: "",
+      workPreference: "",
+      preferredLocations: "",
+      relocation: "",
+      workAuthorization: "",
+      note: "",
+    },
   },
   Fields: SettingsFields,
 };

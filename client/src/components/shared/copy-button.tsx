@@ -10,10 +10,12 @@ type CopyButtonProps = {
   label: string;
   /** Visible text; icon-only when omitted. */
   children?: React.ReactNode;
+  /** Short confirmation shown as a toast, e.g. "Email copied". */
+  toast?: string;
   className?: string;
 };
 
-export function CopyButton({ value, label, children, className }: CopyButtonProps) {
+export function CopyButton({ value, label, children, toast, className }: CopyButtonProps) {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -45,8 +47,16 @@ export function CopyButton({ value, label, children, className }: CopyButtonProp
       <Icon className={cn("size-3.5", copied && "text-brand-text")} aria-hidden="true" />
       {children}
       <span className="sr-only" aria-live="polite">
-        {copied ? "Copied to clipboard" : ""}
+        {copied ? (toast ?? "Copied to clipboard") : ""}
       </span>
+      {copied && toast ? (
+        <span
+          aria-hidden="true"
+          className="pointer-events-none fixed bottom-6 left-1/2 z-50 -translate-x-1/2 animate-in rounded-full bg-foreground px-4 py-2 font-sans text-sm text-background shadow-lg fade-in slide-in-from-bottom-2"
+        >
+          {toast}
+        </span>
+      ) : null}
     </button>
   );
 }

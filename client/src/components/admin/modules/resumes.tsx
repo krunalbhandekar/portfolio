@@ -1,5 +1,7 @@
 "use client";
 
+import { CopyButton } from "@/components/shared/copy-button";
+import { absoluteUrl } from "@/lib/seo";
 import { SwitchField, TextField } from "../kit/fields";
 import { FormSection } from "../kit/layout";
 import { MediaField } from "../media/media-fields";
@@ -12,7 +14,7 @@ function ResumeFields() {
       <TextField
         name="slug"
         label="Variant key"
-        description="Shareable as /resume?v=<key> (Phase 6)."
+        description="Role-tailored link: /resume?v=<key> (e.g. backend). Generated from the label if empty."
       />
       <MediaField name="file" label="PDF" folder="portfolio/resumes" accept="pdf" required wide />
       <SwitchField
@@ -39,6 +41,23 @@ export const resumesConfig: ResourceConfig = {
     {
       header: "Downloads",
       cell: (d) => <span className="font-mono text-xs">{String(d.downloadCount ?? 0)}</span>,
+    },
+    {
+      header: "Share link",
+      className: "hidden md:table-cell",
+      cell: (d) => {
+        const url = absoluteUrl(d.isDefault ? "/resume" : `/resume?v=${String(d.slug)}`);
+        return (
+          <span className="inline-flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
+            {d.isDefault ? "/resume" : `/resume?v=${String(d.slug)}`}
+            <CopyButton
+              value={url}
+              label={`Copy link to ${String(d.label)} resume`}
+              toast="Link copied"
+            />
+          </span>
+        );
+      },
     },
   ],
   defaults: { label: "", slug: "", file: null, isDefault: false, notes: "" },

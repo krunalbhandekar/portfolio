@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Wrench } from "lucide-react";
 import { ApiCard } from "@/components/engineering/api-card";
+import { FlowDiagram } from "@/components/diagrams/flow-diagram";
 import { MermaidDiagram } from "@/components/projects/mermaid-diagram";
 import { EmptyState } from "@/components/shared/empty-state";
 import { JsonLd } from "@/components/shared/json-ld";
@@ -47,6 +48,7 @@ function TopicEntry({ item }: { item: EngineeringItem }) {
         {item.summary ? <p className="text-sm text-muted-foreground">{item.summary}</p> : null}
       </header>
       <RichText html={item.content} className="text-sm" />
+      {item.flow.nodes.length ? <FlowDiagram flow={item.flow} title={item.title} /> : null}
       {item.diagram ? <MermaidDiagram source={item.diagram} title={item.title} /> : null}
       {item.project ? (
         <Link

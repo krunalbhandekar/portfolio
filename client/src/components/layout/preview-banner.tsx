@@ -12,10 +12,14 @@ export async function PreviewBanner() {
   return (
     <div
       role="status"
+      data-draft-preview=""
       className="sticky top-0 z-50 flex items-center justify-center gap-3 border-b border-amber-500/40 bg-amber-500/15 px-4 py-2 text-xs print:hidden"
     >
-      <span className="font-medium">Draft preview</span>
-      <span className="text-muted-foreground">Unpublished changes are visible only to you.</span>
+      <span className="font-medium">Preview mode is on</span>
+      <span className="text-muted-foreground">
+        You&apos;re seeing the latest saved version of every page, including drafts. Only you see
+        this.
+      </span>
       <PreviewExit />
     </div>
   );

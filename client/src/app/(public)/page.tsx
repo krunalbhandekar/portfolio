@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import {
   AboutSection,
   BentoSection,
+  BlogSection,
   CareerSection,
   CaseStudiesSection,
   ExpertiseSection,
@@ -12,7 +13,7 @@ import {
   type SectionProps,
 } from "@/components/home/home-sections";
 import { JsonLd } from "@/components/shared/json-ld";
-import { getHome, getSettings, skillNames } from "@/lib/data/public";
+import { getGithub, getHome, getSettings, skillNames } from "@/lib/data/public";
 import type { HomepageSectionKey } from "@/lib/data/types";
 import { pageMetadata, personJsonLd, SITE_URL } from "@/lib/seo";
 
@@ -26,7 +27,7 @@ const SECTIONS: Partial<Record<HomepageSectionKey, (props: SectionProps) => Reac
   expertise: ExpertiseSection,
   caseStudies: CaseStudiesSection,
   testimonials: TestimonialsSection,
-  // blog arrives in Phase 6.
+  blog: BlogSection,
 };
 
 const DEFAULT_ORDER: HomepageSectionKey[] = [
@@ -39,6 +40,7 @@ const DEFAULT_ORDER: HomepageSectionKey[] = [
   "career",
   "expertise",
   "testimonials",
+  "blog",
 ];
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -50,7 +52,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
-  const [settings, home] = await Promise.all([getSettings(), getHome()]);
+  const [settings, home, github] = await Promise.all([getSettings(), getHome(), getGithub()]);
   const names = skillNames(home.skills);
   const order = home.homepage.sections.length
     ? home.homepage.sections.filter((s) => s.visible).map((s) => s.key)
@@ -79,7 +81,16 @@ export default async function Home() {
         const Section = SECTIONS[key];
         if (!Section) return null;
         const index = key === "hero" ? "" : String(++n).padStart(2, "0");
-        return <Section key={key} home={home} settings={settings} names={names} index={index} />;
+        return (
+          <Section
+            key={key}
+            home={home}
+            settings={settings}
+            names={names}
+            index={index}
+            github={github}
+          />
+        );
       })}
     </>
   );

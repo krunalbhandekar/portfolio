@@ -139,3 +139,48 @@ export async function deleteMedia(id: string) {
   await media.deleteOne();
   return media;
 }
+
+type UsageMetric = {
+  usage?: number;
+  limit?: number;
+  used_percent?: number;
+  credits_usage?: number;
+};
+type CloudinaryUsage = {
+  plan?: string;
+  last_updated?: string;
+  credits?: UsageMetric;
+  storage?: UsageMetric;
+  bandwidth?: UsageMetric;
+  transformations?: UsageMetric;
+  resources?: number;
+};
+
+let usageCache: { at: number; data: unknown } | null = null;
+const USAGE_TTL_MS = 10 * 60_000;
+
+/**
+ * Cloudinary plan usage for the dashboard widget (portfolio.md §7.1). The free plan counts one
+ * monthly credit pool across storage, bandwidth and transformations. Cached for 10 minutes:
+ * the Admin API is rate-limited and the numbers only update a few times a day anyway.
+ */
+export async function getCloudinaryUsage() {
+  if (usageCache && Date.now() - usageCache.at < USAGE_TTL_MS) return usageCache.data;
+  const raw = (await cloudinary.api.usage()) as CloudinaryUsage;
+  const metric = (m?: UsageMetric) => ({ usage: m?.usage ?? 0, credits: m?.credits_usage ?? 0 });
+  const data = {
+    plan: raw.plan ?? "Free",
+    lastUpdated: raw.last_updated ?? null,
+    credits: {
+      used: raw.credits?.usage ?? 0,
+      limit: raw.credits?.limit ?? null,
+      percent: raw.credits?.used_percent ?? null,
+    },
+    storage: metric(raw.storage),
+    bandwidth: metric(raw.bandwidth),
+    transformations: metric(raw.transformations),
+    resources: raw.resources ?? null,
+  };
+  usageCache = { at: Date.now(), data };
+  return data;
+}
