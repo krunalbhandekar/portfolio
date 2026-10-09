@@ -31,11 +31,12 @@ export default async function UsesPage() {
         ])}
       />
       <SectionHeader as="h1" eyebrow="Uses" title={page.title} description={page.intro} />
-      <div className="grid gap-8 md:grid-cols-2">
+      {/* Masonry columns: each group keeps its own height, so short groups don't leave gaps. */}
+      <div className="gap-8 md:columns-2">
         {page.sections.map((section) => (
           <section
             key={section.title}
-            className="flex flex-col gap-4 rounded-2xl border bg-card p-6"
+            className="mb-8 flex break-inside-avoid flex-col gap-4 rounded-2xl border bg-card p-6"
           >
             <h2 className="font-mono text-xs tracking-widest text-brand-text uppercase">
               {section.title}
