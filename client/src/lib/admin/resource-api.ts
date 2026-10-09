@@ -87,17 +87,6 @@ export function usePublishResource(apiPath: string) {
   });
 }
 
-export function useScheduleResource(apiPath: string) {
-  const invalidate = useInvalidate(apiPath);
-  return useMutation({
-    mutationFn: ({ id, publishAt }: { id: string; publishAt: Date }) =>
-      api.post<ContentDoc>(`/admin/${apiPath}/${id}/schedule`, {
-        publishAt: publishAt.toISOString(),
-      }),
-    onSuccess: invalidate,
-  });
-}
-
 export function useReorderResource(apiPath: string) {
   const invalidate = useInvalidate(apiPath);
   return useMutation({

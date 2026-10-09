@@ -4,7 +4,7 @@ export type RegistryDoc = Record<string, unknown> & { _id: Types.ObjectId };
 
 /**
  * Every admin-editable resource, registered by the CRUD/singleton routers. Used by features that
- * work across all content types: revisions/restore, scheduled publishing and backups.
+ * work across all content types: revisions/restore.
  */
 export type RegisteredResource = {
   resource: string;

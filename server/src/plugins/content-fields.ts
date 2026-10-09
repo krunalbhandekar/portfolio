@@ -1,6 +1,6 @@
 import { Schema } from "mongoose";
 
-export const CONTENT_STATUSES = ["draft", "published", "scheduled"] as const;
+export const CONTENT_STATUSES = ["draft", "published"] as const;
 export type ContentStatus = (typeof CONTENT_STATUSES)[number];
 
 /**
@@ -10,7 +10,6 @@ export type ContentStatus = (typeof CONTENT_STATUSES)[number];
 export function contentFieldsPlugin(schema: Schema) {
   schema.add({
     status: { type: String, enum: CONTENT_STATUSES, default: "draft", index: true },
-    publishAt: { type: Date },
     order: { type: Number, default: 0 },
     seo: {
       title: { type: String, trim: true, maxlength: 70 },

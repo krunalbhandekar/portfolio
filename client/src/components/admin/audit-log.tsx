@@ -155,9 +155,6 @@ export function AuditLog() {
                   </td>
                   <td className="max-w-xs truncate px-4 py-2.5">
                     {String(entry.meta?.label ?? entry.meta?.reason ?? entry.meta?.email ?? "—")}
-                    {entry.meta?.scheduled ? (
-                      <span className="ml-2 text-xs text-sky-600">scheduled</span>
-                    ) : null}
                   </td>
                   <td className="hidden px-4 py-2.5 text-xs text-muted-foreground md:table-cell">
                     {entry.adminEmail ?? (entry.action.startsWith("auth.") ? "—" : "System (job)")}

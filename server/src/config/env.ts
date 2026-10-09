@@ -31,9 +31,6 @@ const envSchema = z.object({
 
   // Phase 4 — contact & monitoring
   RESEND_API_KEY: laterPhase,
-
-  // Phase 6 — scheduled jobs (cron-job.org)
-  JOBS_SECRET: laterPhase,
 });
 
 // Treat blank values (e.g. `KEY=` copied from .env.example) as unset.

@@ -34,7 +34,6 @@ export const ACTION_LABELS: Record<string, string> = {
   delete: "Before deletion",
   publish: "Before publishing",
   unpublish: "Before unpublishing",
-  schedule: "Before scheduling",
   restore: "Before a restore",
 };
 
@@ -99,7 +98,7 @@ function Diff({ before, after }: { before: unknown; after: unknown }) {
 }
 
 /**
- * Revision history drawer (portfolio.md §4 #6): every save, publish, schedule, delete and
+ * Revision history drawer (portfolio.md §4 #6): every save, publish, unpublish, delete and
  * restore keeps the previous version. Shows what restoring a version would change against the
  * current document, then restores it (the current state is kept as a revision too).
  */

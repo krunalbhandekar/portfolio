@@ -54,7 +54,6 @@ export function FormSection({
 export const statusStyles: Record<string, string> = {
   published: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
   draft: "border-border bg-muted text-muted-foreground",
-  scheduled: "border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300",
 };
 
 export function StatusPill({ status }: { status?: string }) {

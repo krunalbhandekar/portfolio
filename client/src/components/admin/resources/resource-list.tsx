@@ -44,7 +44,6 @@ import type { ContentDoc } from "@/lib/admin/types";
 import { cn } from "@/lib/utils";
 import { useConfirm } from "../kit/confirm-dialog";
 import { selectClass } from "../kit/fields";
-import { formatWhen } from "../history/revision-history";
 import { RecentlyDeleted } from "../history/recently-deleted";
 import { PageHeader, StatusPill } from "../kit/layout";
 import type { ResourceConfig } from "./types";
@@ -333,11 +332,7 @@ export function ResourceList({ config }: { config: ResourceConfig }) {
                           onClick={() => onTogglePublish(doc)}
                           disabled={publish.isPending}
                           title={
-                            doc.status === "published"
-                              ? "Click to unpublish"
-                              : doc.status === "scheduled" && doc.publishAt
-                                ? `Scheduled for ${formatWhen(String(doc.publishAt))} — click to publish now`
-                                : "Click to publish"
+                            doc.status === "published" ? "Click to unpublish" : "Click to publish"
                           }
                           className="rounded-full"
                         >

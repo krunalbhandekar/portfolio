@@ -1,4 +1,4 @@
-import express, { Router } from "express";
+import { Router } from "express";
 import mongoose from "mongoose";
 import { z } from "zod";
 import { validate } from "../../middlewares/validate.js";
@@ -9,13 +9,6 @@ import { sendSuccess } from "../../utils/response.js";
 import { Admin } from "../admins/admin.model.js";
 import { AuditLog } from "../audit/audit-log.model.js";
 import { recordAudit } from "../audit/audit.service.js";
-import {
-  backupDownloadUrl,
-  exportAll,
-  importAll,
-  listBackups,
-  runBackup,
-} from "../backup/backup.service.js";
 import { Redirect } from "../redirects/redirect.model.js";
 import { redirectInput } from "../redirects/redirect.schema.js";
 import { redirectFilter } from "../redirects/redirect.service.js";
@@ -37,12 +30,7 @@ const auditQuery = paginationQuerySchema.extend({
   to: z.coerce.date().optional(),
 });
 
-const importQuery = z.object({
-  dryRun: z.enum(["true", "false"]).default("true"),
-  mode: z.enum(["replace", "merge"]).default("replace"),
-});
-
-/** Admin operations (portfolio.md §15 Phase 7): history, audit, redirects, backups. */
+/** Admin operations (portfolio.md §15 Phase 7): history, audit, redirects. */
 export const opsRoutes = Router()
   // ---------------------------------------------------------------- Revisions
   .get(
@@ -167,66 +155,4 @@ export const opsRoutes = Router()
     });
     void revalidate({ tags: ["redirects"] });
     sendSuccess(res, { deleted: true });
-  })
-
-  // ---------------------------------------------------------------- Backups, export, import
-  .get("/backups", async (_req, res) => sendSuccess(res, await listBackups()))
-  .post("/backups", async (req, res) => {
-    const result = await runBackup("manual");
-    await recordAudit(req, {
-      action: "backup.create",
-      adminId: req.admin!.id,
-      entity: "backup",
-      meta: { label: result.publicId, bytes: result.bytes },
-    });
-    sendSuccess(res, result, { status: 201 });
-  })
-  .get(
-    "/backups/download",
-    validate({ query: z.object({ publicId: z.string().min(1).max(200) }) }),
-    async (req, res) => {
-      const { publicId } = req.validatedQuery as { publicId: string };
-      await recordAudit(req, {
-        action: "backup.download",
-        adminId: req.admin!.id,
-        entity: "backup",
-        meta: { label: publicId },
-      });
-      sendSuccess(res, { url: backupDownloadUrl(publicId) });
-    },
-  )
-  .get("/export", async (req, res) => {
-    const json = await exportAll();
-    await recordAudit(req, { action: "backup.export", adminId: req.admin!.id, entity: "backup" });
-    const date = new Date().toISOString().slice(0, 10);
-    res
-      .set("Content-Type", "application/json; charset=utf-8")
-      .set("Content-Disposition", `attachment; filename="portfolio-export-${date}.json"`)
-      .send(json);
-  })
-  // Body is the raw export file (text/plain, up to 25 MB), so it skips the 1 MB JSON parser.
-  .post(
-    "/import",
-    express.text({ type: ["text/plain", "application/octet-stream"], limit: "25mb" }),
-    validate({ query: importQuery }),
-    async (req, res) => {
-      const q = req.validatedQuery as z.infer<typeof importQuery>;
-      const dryRun = q.dryRun === "true";
-      const report = await importAll(typeof req.body === "string" ? req.body : "", {
-        dryRun,
-        mode: q.mode,
-      });
-      if (!dryRun) {
-        await recordAudit(req, {
-          action: "backup.import",
-          adminId: req.admin!.id,
-          entity: "backup",
-          meta: {
-            mode: q.mode,
-            collections: report.collections.map((c) => `${c.name}:${c.incoming}`).join(", "),
-          },
-        });
-      }
-      sendSuccess(res, report);
-    },
-  );
+  });

@@ -5,7 +5,7 @@ export const REVISIONS_PER_DOCUMENT = 30;
 
 /**
  * Snapshot of a document *before* a change (portfolio.md §4 #6), so any edit, publish,
- * schedule or delete can be reverted from the admin.
+ * or delete can be reverted from the admin.
  */
 const revisionSchema = new Schema(
   {

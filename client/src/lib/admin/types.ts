@@ -1,6 +1,6 @@
 /** Shapes returned by the admin API (portfolio.md §9). */
 
-export type ContentStatus = "draft" | "published" | "scheduled";
+export type ContentStatus = "draft" | "published";
 
 export type MediaRef = {
   mediaId: string;

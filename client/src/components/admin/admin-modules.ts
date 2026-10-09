@@ -3,7 +3,6 @@ import {
   BookOpen,
   BriefcaseBusiness,
   Cpu,
-  DatabaseBackup,
   FileText,
   FolderKanban,
   History,
@@ -80,7 +79,6 @@ export const adminModules: AdminModule[] = [
   { label: "Now / Uses / FAQ", href: "/admin/pages", icon: Sparkles, phase: 7, available: true },
   { label: "SEO", href: "/admin/seo", icon: Search, phase: 7, available: true },
   { label: "Audit log", href: "/admin/audit", icon: History, phase: 7, available: true },
-  { label: "Backup", href: "/admin/backup", icon: DatabaseBackup, phase: 7, available: true },
 ];
 
 export const availableModules = adminModules.filter((module) => module.available);
