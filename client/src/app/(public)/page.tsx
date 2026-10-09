@@ -3,10 +3,12 @@ import {
   AboutSection,
   BentoSection,
   CareerSection,
+  CaseStudiesSection,
   ExpertiseSection,
   FeaturedProjectsSection,
   HeroSection,
   StatsSection,
+  TestimonialsSection,
   type SectionProps,
 } from "@/components/home/home-sections";
 import { JsonLd } from "@/components/shared/json-ld";
@@ -22,7 +24,9 @@ const SECTIONS: Partial<Record<HomepageSectionKey, (props: SectionProps) => Reac
   about: AboutSection,
   career: CareerSection,
   expertise: ExpertiseSection,
-  // caseStudies, testimonials and blog arrive in Phases 5–6.
+  caseStudies: CaseStudiesSection,
+  testimonials: TestimonialsSection,
+  // blog arrives in Phase 6.
 };
 
 const DEFAULT_ORDER: HomepageSectionKey[] = [
@@ -31,8 +35,10 @@ const DEFAULT_ORDER: HomepageSectionKey[] = [
   "bento",
   "featuredProjects",
   "about",
+  "caseStudies",
   "career",
   "expertise",
+  "testimonials",
 ];
 
 export async function generateMetadata(): Promise<Metadata> {

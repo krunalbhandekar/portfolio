@@ -18,16 +18,19 @@ export const siteConfig = {
   ],
 } as const;
 
-/** Only pages that exist. Case Studies, Engineering and Blog are added in Phases 5–6. */
+/** Only pages that exist. Blog joins in Phase 6. */
 export const mainNav = [
   { label: "Projects", href: "/projects" },
+  { label: "Case Studies", href: "/case-studies" },
+  { label: "Engineering", href: "/engineering" },
   { label: "Experience", href: "/experience" },
-  { label: "Skills", href: "/skills" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
 ] as const;
 
 export const footerResources = [
   { label: "Resume", href: "/resume" },
+  { label: "Skills", href: "/skills" },
+  { label: "What I Built", href: "/built" },
   { label: "Sitemap", href: "/sitemap.xml" },
 ] as const;

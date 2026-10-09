@@ -24,6 +24,8 @@ export type ResourceConfig = {
   defaults: Record<string, unknown>;
   /** Form body, rendered inside a react-hook-form <FormProvider>. */
   Fields: ComponentType;
+  /** Public path for "Preview" (Next.js Draft Mode); omit for modules without a page. */
+  previewPath?: (doc: ContentDoc) => string | null;
 };
 
 export type SingletonConfig = {

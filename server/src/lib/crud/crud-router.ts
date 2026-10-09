@@ -36,6 +36,8 @@ export type CrudConfig = {
   tags: (doc: Doc, previous?: Doc | null) => string[];
   /** Sortable fields for `?sort=` (prefix with "-" for descending). */
   sortable?: string[];
+  /** Derives fields before saving, e.g. a case study's reading time. */
+  transform?: (data: Record<string, unknown>) => Record<string, unknown>;
   /** Runs after create/update, e.g. to keep a single default resume. */
   afterSave?: (doc: Doc) => Promise<void>;
 };
@@ -67,7 +69,7 @@ export function crudRouter(config: CrudConfig) {
       data.slug = await uniqueSlug(model, base, id);
     }
     data.updatedBy = req.admin!.id;
-    return data;
+    return config.transform ? config.transform(data) : data;
   }
 
   async function afterWrite(req: Request, action: string, doc: Doc, previous?: Doc | null) {

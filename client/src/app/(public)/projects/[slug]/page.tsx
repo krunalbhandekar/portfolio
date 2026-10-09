@@ -1,9 +1,9 @@
-import { Suspense } from "react";
+import { Suspense, ViewTransition } from "react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowRight, ExternalLink, KeyRound, Lock } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, ExternalLink, KeyRound, Lock } from "lucide-react";
 import { MermaidDiagram } from "@/components/projects/mermaid-diagram";
 import { ProjectCard } from "@/components/projects/project-card";
 import { VideoEmbed } from "@/components/projects/video-embed";
@@ -142,6 +142,14 @@ async function ProjectContent({ params }: { params: Promise<{ slug: string }> })
               Live demo <ExternalLink aria-hidden="true" />
             </a>
           ) : null}
+          {project.caseStudy ? (
+            <Link
+              href={`/case-studies/${project.caseStudy.slug}`}
+              className={buttonVariants({ variant: "outline", size: "lg" })}
+            >
+              <BookOpen aria-hidden="true" /> Read the case study
+            </Link>
+          ) : null}
           {project.repoUrl && !project.confidential ? (
             <a
               href={project.repoUrl}
@@ -169,17 +177,19 @@ async function ProjectContent({ params }: { params: Promise<{ slug: string }> })
       ) : null}
 
       {project.thumbnail ? (
-        <div className="relative aspect-video overflow-hidden rounded-2xl border bg-muted">
-          <Image
-            src={project.thumbnail.url}
-            alt={project.thumbnail.alt}
-            fill
-            preload
-            fetchPriority="high"
-            sizes="(min-width: 1100px) 1050px, 100vw"
-            className="object-cover"
-          />
-        </div>
+        <ViewTransition name={`project-thumb-${project.slug}`} share="morph" default="none">
+          <div className="relative aspect-video overflow-hidden rounded-2xl border bg-muted">
+            <Image
+              src={project.thumbnail.url}
+              alt={project.thumbnail.alt}
+              fill
+              preload
+              fetchPriority="high"
+              sizes="(min-width: 1100px) 1050px, 100vw"
+              className="object-cover"
+            />
+          </div>
+        </ViewTransition>
       ) : null}
 
       <div className="grid gap-12 lg:grid-cols-[1fr_280px]">

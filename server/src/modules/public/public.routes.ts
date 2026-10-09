@@ -7,6 +7,7 @@ import { SLUG_PATTERN } from "../../utils/slug.js";
 import { contactSchema } from "../messages/contact.schema.js";
 import { submitContact } from "../messages/contact.service.js";
 import * as service from "./public.service.js";
+import { requirePreviewSecret } from "../../middlewares/preview-secret.js";
 
 const projectsQuery = z.object({
   category: z.string().max(40).optional(),
@@ -32,6 +33,30 @@ export const publicRoutes = Router()
     sendSuccess(res, await service.getProject(req.params.slug as string)),
   )
   .get("/skills", async (_req, res) => sendSuccess(res, await service.getSkills()))
+  .get("/case-studies", async (_req, res) => sendSuccess(res, await service.getCaseStudies()))
+  .get("/case-studies/:slug", validate({ params: slugParams }), async (req, res) =>
+    sendSuccess(res, await service.getCaseStudy(req.params.slug as string)),
+  )
+  .get("/engineering", async (_req, res) => sendSuccess(res, await service.getEngineering()))
+  .get("/built-features", async (_req, res) => sendSuccess(res, await service.getBuiltFeatures()))
+  .get("/testimonials", async (_req, res) => sendSuccess(res, await service.getTestimonials()))
+  .get("/achievements", async (_req, res) => sendSuccess(res, await service.getAchievements()))
+  .get("/certifications", async (_req, res) => sendSuccess(res, await service.getCertifications()))
+  // Draft previews (Next.js Draft Mode, portfolio.md §5.3): server-to-server only.
+  .get(
+    "/preview/projects/:slug",
+    requirePreviewSecret,
+    validate({ params: slugParams }),
+    async (req, res) =>
+      sendSuccess(res, await service.getProject(req.params.slug as string, { drafts: true })),
+  )
+  .get(
+    "/preview/case-studies/:slug",
+    requirePreviewSecret,
+    validate({ params: slugParams }),
+    async (req, res) =>
+      sendSuccess(res, await service.getCaseStudy(req.params.slug as string, { drafts: true })),
+  )
   .get("/resume", validate({ query: resumeQuery }), async (req, res) =>
     sendSuccess(
       res,

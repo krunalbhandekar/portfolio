@@ -2,7 +2,12 @@ import mongoose, { Types } from "mongoose";
 import { notFound } from "../../utils/app-error.js";
 import { escapeRegex } from "../../utils/regex.js";
 import { About } from "../about/about.model.js";
+import { Achievement } from "../achievements/achievement.model.js";
+import { BuiltFeature } from "../built-features/built-feature.model.js";
 import { Capability } from "../capabilities/capability.model.js";
+import { CaseStudy } from "../case-studies/case-study.model.js";
+import { Certification } from "../certifications/certification.model.js";
+import { EngineeringItem } from "../engineering/engineering.model.js";
 import { Experience } from "../experiences/experience.model.js";
 import { Homepage } from "../homepage/homepage.model.js";
 import { HOMEPAGE_SECTIONS } from "../homepage/homepage.schema.js";
@@ -10,6 +15,7 @@ import { Project } from "../projects/project.model.js";
 import { Resume } from "../resumes/resume.model.js";
 import { SiteSettings } from "../settings/settings.model.js";
 import { Skill } from "../skills/skill.model.js";
+import { Testimonial } from "../testimonials/testimonial.model.js";
 
 /*
  * Read-only data for the public site (portfolio.md §10). Only `published` content, and only
@@ -17,6 +23,31 @@ import { Skill } from "../skills/skill.model.js";
  */
 
 const PUBLISHED = { status: "published" } as const;
+
+/** Preview endpoints pass `drafts: true` to also return unpublished documents. */
+type ReadOptions = { drafts?: boolean };
+const visible = (options: ReadOptions = {}) => (options.drafts ? {} : PUBLISHED);
+
+const CASE_STUDY_CARD = {
+  title: 1,
+  slug: 1,
+  summary: 1,
+  coverImage: 1,
+  readingTime: 1,
+  featured: 1,
+  projectId: 1,
+  updatedAt: 1,
+} as const;
+
+const TESTIMONIAL_FIELDS = {
+  quote: 1,
+  name: 1,
+  role: 1,
+  company: 1,
+  relationship: 1,
+  photo: 1,
+  linkedinUrl: 1,
+} as const;
 const INTERNAL = { updatedBy: 0, __v: 0, key: 0 } as const;
 
 /** Fields for project cards (grid, featured, related). */
@@ -79,6 +110,10 @@ export async function getHome() {
     Skill.find(PUBLISHED, { name: 1, slug: 1, icon: 1, category: 1 }).sort({ order: 1 }).lean(),
     About.findOne({ key: "default" }, { headline: 1, story: 1, portrait: 1 }).lean(),
   ]);
+  const [caseStudies, testimonials] = await Promise.all([
+    CaseStudy.find(PUBLISHED, CASE_STUDY_CARD).sort({ featured: -1, order: 1 }).limit(3).lean(),
+    Testimonial.find(PUBLISHED, TESTIMONIAL_FIELDS).sort({ order: 1 }).limit(12).lean(),
+  ]);
 
   return {
     homepage: homepage ?? { sections: HOMEPAGE_SECTIONS.map((key) => ({ key, visible: true })) },
@@ -86,6 +121,8 @@ export async function getHome() {
     experiences,
     skills,
     about,
+    caseStudies,
+    testimonials,
   };
 }
 
@@ -137,11 +174,11 @@ export async function getProjects(query: ProjectQuery) {
   return Project.find(filter, PROJECT_CARD).sort({ featured: -1, order: 1 }).lean();
 }
 
-export async function getProject(slug: string) {
-  const project = await Project.findOne({ ...PUBLISHED, slug }, INTERNAL).lean();
+export async function getProject(slug: string, options: ReadOptions = {}) {
+  const project = await Project.findOne({ ...visible(options), slug }, INTERNAL).lean();
   if (!project) throw notFound("Project not found");
 
-  const [ordered, related, experience] = await Promise.all([
+  const [ordered, related, experience, caseStudy] = await Promise.all([
     Project.find(PUBLISHED, { title: 1, slug: 1 }).sort({ featured: -1, order: 1 }).lean(),
     Project.find(
       {
@@ -163,6 +200,10 @@ export async function getProject(slug: string) {
           { company: 1, position: 1, companyUrl: 1 },
         ).lean()
       : null,
+    CaseStudy.findOne(
+      { ...visible(options), projectId: project._id },
+      { title: 1, slug: 1 },
+    ).lean(),
   ]);
 
   const index = ordered.findIndex((p) => String(p._id) === String(project._id));
@@ -175,10 +216,100 @@ export async function getProject(slug: string) {
     ...rest,
     demoCredentials: project.type === "personal" ? (demoCredentials ?? null) : null,
     experience,
+    caseStudy: caseStudy ? { title: caseStudy.title, slug: caseStudy.slug } : null,
     related,
     previous: neighbour(index - 1),
     next: neighbour(index + 1),
   };
+}
+
+async function projectLinks(ids: unknown[]) {
+  const unique = [...new Set(ids.filter(Boolean).map(String))].map((id) => new Types.ObjectId(id));
+  if (!unique.length) return new Map<string, { title: string; slug: string }>();
+  const projects = await Project.find(
+    { ...PUBLISHED, _id: mongoose.trusted({ $in: unique }) },
+    { title: 1, slug: 1 },
+  ).lean();
+  return new Map(projects.map((p) => [String(p._id), { title: p.title, slug: p.slug }]));
+}
+
+export async function getCaseStudies() {
+  const studies = await CaseStudy.find(PUBLISHED, CASE_STUDY_CARD)
+    .sort({ featured: -1, order: 1 })
+    .lean();
+  const projects = await projectLinks(studies.map((s) => s.projectId));
+  return studies.map(({ projectId, ...study }) => ({
+    ...study,
+    project: projectId ? (projects.get(String(projectId)) ?? null) : null,
+  }));
+}
+
+export async function getCaseStudy(slug: string, options: ReadOptions = {}) {
+  const study = await CaseStudy.findOne({ ...visible(options), slug }, INTERNAL).lean();
+  if (!study) throw notFound("Case study not found");
+  const [project, more] = await Promise.all([
+    study.projectId
+      ? Project.findOne({ ...visible(options), _id: study.projectId }, PROJECT_CARD).lean()
+      : null,
+    CaseStudy.find({ ...PUBLISHED, _id: mongoose.trusted({ $ne: study._id }) }, CASE_STUDY_CARD)
+      .sort({ featured: -1, order: 1 })
+      .limit(2)
+      .lean(),
+  ]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- strip the raw id; `project` replaces it
+  const { projectId: _projectId, ...rest } = study;
+  return { ...rest, project, more };
+}
+
+export async function getEngineering() {
+  const items = await EngineeringItem.find(PUBLISHED, INTERNAL)
+    .sort({ order: 1, createdAt: 1 })
+    .lean();
+  const projects = await projectLinks(items.map((i) => i.projectId));
+  return items.map(({ projectId, ...item }) => ({
+    ...item,
+    project: projectId ? (projects.get(String(projectId)) ?? null) : null,
+  }));
+}
+
+export async function getBuiltFeatures() {
+  const features = await BuiltFeature.find(PUBLISHED, INTERNAL)
+    .sort({ order: 1, feature: 1 })
+    .lean();
+  const ids = features.map((f) => f.projectId);
+  const [projects, studies] = await Promise.all([
+    projectLinks(ids),
+    CaseStudy.find(
+      {
+        ...PUBLISHED,
+        projectId: mongoose.trusted({ $in: ids.filter((id): id is Types.ObjectId => Boolean(id)) }),
+      },
+      { slug: 1, projectId: 1 },
+    ).lean(),
+  ]);
+  const studyByProject = new Map(studies.map((s) => [String(s.projectId), s.slug]));
+  return features.map(({ projectId, ...feature }) => ({
+    ...feature,
+    project: projectId ? (projects.get(String(projectId)) ?? null) : null,
+    caseStudySlug: projectId ? (studyByProject.get(String(projectId)) ?? null) : null,
+  }));
+}
+
+export async function getTestimonials() {
+  return Testimonial.find(PUBLISHED, TESTIMONIAL_FIELDS).sort({ order: 1 }).lean();
+}
+
+export async function getAchievements() {
+  const items = await Achievement.find(PUBLISHED, INTERNAL).sort({ order: 1, date: -1 }).lean();
+  const projects = await projectLinks(items.map((i) => i.projectId));
+  return items.map(({ projectId, ...item }) => ({
+    ...item,
+    project: projectId ? (projects.get(String(projectId)) ?? null) : null,
+  }));
+}
+
+export async function getCertifications() {
+  return Certification.find(PUBLISHED, INTERNAL).sort({ order: 1, date: -1 }).lean();
 }
 
 export async function getSkills() {
@@ -238,18 +369,26 @@ export async function getSitemapData() {
         .sort({ updatedAt: -1 })
         .lean<{ updatedAt?: Date }>()
     )?.updatedAt ?? null;
-  const [projects, settings, about, experiences, skills] = await Promise.all([
-    Project.find(
-      { ...PUBLISHED, "seo.noindex": mongoose.trusted({ $ne: true }) },
-      { slug: 1, updatedAt: 1 },
-    ).lean<{ slug: string; updatedAt: Date }[]>(),
-    latest(SiteSettings, {}),
-    latest(About, {}),
-    latest(Experience),
-    latest(Skill),
-  ]);
+  const [projects, settings, about, experiences, skills, caseStudies, engineering, built] =
+    await Promise.all([
+      Project.find(
+        { ...PUBLISHED, "seo.noindex": mongoose.trusted({ $ne: true }) },
+        { slug: 1, updatedAt: 1 },
+      ).lean<{ slug: string; updatedAt: Date }[]>(),
+      latest(SiteSettings, {}),
+      latest(About, {}),
+      latest(Experience),
+      latest(Skill),
+      CaseStudy.find(
+        { ...PUBLISHED, "seo.noindex": mongoose.trusted({ $ne: true }) },
+        { slug: 1, updatedAt: 1 },
+      ).lean<{ slug: string; updatedAt: Date }[]>(),
+      latest(EngineeringItem),
+      latest(BuiltFeature),
+    ]);
   return {
     projects: projects.map((p) => ({ slug: p.slug, updatedAt: p.updatedAt })),
-    updatedAt: { settings, about, experiences, skills },
+    caseStudies: caseStudies.map((c) => ({ slug: c.slug, updatedAt: c.updatedAt })),
+    updatedAt: { settings, about, experiences, skills, engineering, built },
   };
 }

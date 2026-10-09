@@ -30,6 +30,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly" as const,
       priority: 0.8,
     })),
+    { url: absoluteUrl("/case-studies"), changeFrequency: "monthly", priority: 0.8 },
+    ...data.caseStudies.map((c) => ({
+      url: absoluteUrl(`/case-studies/${c.slug}`),
+      lastModified: at(c.updatedAt),
+      changeFrequency: "monthly" as const,
+      priority: 0.8,
+    })),
+    {
+      url: absoluteUrl("/engineering"),
+      lastModified: at(data.updatedAt.engineering),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: absoluteUrl("/built"),
+      lastModified: at(data.updatedAt.built),
+      changeFrequency: "monthly",
+      priority: 0.6,
+    },
     {
       url: absoluteUrl("/experience"),
       lastModified: at(data.updatedAt.experiences),

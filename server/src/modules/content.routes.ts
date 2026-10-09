@@ -4,8 +4,18 @@ import { crudRouter } from "../lib/crud/crud-router.js";
 import { singletonRouter } from "../lib/crud/singleton-router.js";
 import { About } from "./about/about.model.js";
 import { aboutInput } from "./about/about.schema.js";
+import { Achievement } from "./achievements/achievement.model.js";
+import { achievementInput } from "./achievements/achievement.schema.js";
+import { BuiltFeature } from "./built-features/built-feature.model.js";
+import { builtFeatureInput } from "./built-features/built-feature.schema.js";
 import { Capability } from "./capabilities/capability.model.js";
 import { capabilityInput } from "./capabilities/capability.schema.js";
+import { CaseStudy } from "./case-studies/case-study.model.js";
+import { caseStudyInput, readingTimeMinutes } from "./case-studies/case-study.schema.js";
+import { Certification } from "./certifications/certification.model.js";
+import { certificationInput } from "./certifications/certification.schema.js";
+import { EngineeringItem } from "./engineering/engineering.model.js";
+import { engineeringInput } from "./engineering/engineering.schema.js";
 import { Experience } from "./experiences/experience.model.js";
 import { experienceInput } from "./experiences/experience.schema.js";
 import { Homepage } from "./homepage/homepage.model.js";
@@ -18,6 +28,8 @@ import { SiteSettings } from "./settings/settings.model.js";
 import { settingsInput } from "./settings/settings.schema.js";
 import { Skill } from "./skills/skill.model.js";
 import { skillInput } from "./skills/skill.schema.js";
+import { Testimonial } from "./testimonials/testimonial.model.js";
+import { testimonialInput } from "./testimonials/testimonial.schema.js";
 
 /**
  * Admin content API (portfolio.md §10). Mounted under /api/v1/admin, behind requireAdmin.
@@ -161,5 +173,89 @@ export const contentRoutes = Router()
           );
         }
       },
+    }),
+  )
+  .use(
+    "/case-studies",
+    crudRouter({
+      resource: "case-studies",
+      model: CaseStudy,
+      input: caseStudyInput,
+      labelField: "title",
+      searchFields: ["title", "summary"],
+      slugFrom: "title",
+      sortable: ["title", "featured"],
+      transform: (data) => ({
+        ...data,
+        readingTime: readingTimeMinutes(data.sections as { content?: unknown }[]),
+      }),
+      // Project pages link to their case study, so they refresh too.
+      tags: (doc, previous) => [
+        "case-studies",
+        "projects",
+        `case-study:${String(doc.slug)}`,
+        ...(previous && previous.slug !== doc.slug ? [`case-study:${String(previous.slug)}`] : []),
+      ],
+    }),
+  )
+  .use(
+    "/engineering",
+    crudRouter({
+      resource: "engineering",
+      model: EngineeringItem,
+      input: engineeringInput,
+      labelField: "title",
+      searchFields: ["title", "summary", "type"],
+      slugFrom: "title",
+      sortable: ["type", "title"],
+      tags: () => ["engineering"],
+    }),
+  )
+  .use(
+    "/built-features",
+    crudRouter({
+      resource: "built-features",
+      model: BuiltFeature,
+      input: builtFeatureInput,
+      labelField: "feature",
+      searchFields: ["feature", "description", "area", "technologies"],
+      sortable: ["feature", "area"],
+      tags: () => ["built"],
+    }),
+  )
+  .use(
+    "/testimonials",
+    crudRouter({
+      resource: "testimonials",
+      model: Testimonial,
+      input: testimonialInput,
+      labelField: "name",
+      searchFields: ["name", "company", "quote"],
+      sortable: ["name", "company"],
+      tags: () => ["testimonials"],
+    }),
+  )
+  .use(
+    "/achievements",
+    crudRouter({
+      resource: "achievements",
+      model: Achievement,
+      input: achievementInput,
+      labelField: "title",
+      searchFields: ["title", "description"],
+      sortable: ["title", "date"],
+      tags: () => ["achievements"],
+    }),
+  )
+  .use(
+    "/certifications",
+    crudRouter({
+      resource: "certifications",
+      model: Certification,
+      input: certificationInput,
+      labelField: "title",
+      searchFields: ["title", "institution"],
+      sortable: ["title", "date", "type"],
+      tags: () => ["certifications"],
     }),
   );

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, MapPin } from "lucide-react";
+import { CaseStudyCard } from "@/components/case-studies/case-study-card";
 import { Reveal } from "@/components/motion/reveal";
 import { ProjectCard } from "@/components/projects/project-card";
 import { BentoCard } from "@/components/shared/bento-card";
@@ -13,7 +14,9 @@ import { Timeline, TimelineItem } from "@/components/shared/timeline";
 import { buttonVariants } from "@/components/ui/button";
 import type { HomeData, Settings } from "@/lib/data/types";
 import { excerpt, formatPeriod } from "@/lib/format";
+import { initials } from "@/lib/initials";
 import { cn } from "@/lib/utils";
+import { TestimonialsCarousel } from "./testimonials-carousel";
 
 export type SectionProps = {
   home: HomeData;
@@ -320,6 +323,99 @@ export function ExpertiseSection({ home, names, index }: SectionProps) {
           ))}
         </div>
       </Reveal>
+    </section>
+  );
+}
+
+export function CaseStudiesSection({ home, index }: SectionProps) {
+  if (!home.caseStudies.length) return null;
+  return (
+    <section className="container-page flex flex-col gap-8 py-16">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <SectionHeader
+          index={index}
+          eyebrow="Case studies"
+          title="Deep dives"
+          description="The problem, the constraints, the decisions and what happened."
+        />
+        <Link href="/case-studies" className={buttonVariants({ variant: "outline" })}>
+          All case studies <ArrowRight aria-hidden="true" />
+        </Link>
+      </div>
+      <Reveal>
+        <ul className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {home.caseStudies.map((study) => (
+            <li key={study._id}>
+              <CaseStudyCard study={study} />
+            </li>
+          ))}
+        </ul>
+      </Reveal>
+    </section>
+  );
+}
+
+const RELATIONSHIP_LABELS: Record<string, string> = {
+  manager: "Manager",
+  colleague: "Colleague",
+  client: "Client",
+  mentor: "Mentor",
+};
+
+export function TestimonialsSection({ home, index }: SectionProps) {
+  if (!home.testimonials.length) return null;
+  return (
+    <section className="container-page flex flex-col gap-8 py-16">
+      <SectionHeader index={index} eyebrow="Testimonials" title="What people say" />
+      <TestimonialsCarousel count={home.testimonials.length}>
+        {home.testimonials.map((t) => (
+          <li key={t._id} className="w-[85%] shrink-0 snap-start sm:w-[420px]">
+            <figure className="flex h-full flex-col gap-5 rounded-2xl border bg-card p-6">
+              <blockquote className="flex-1 text-pretty text-muted-foreground">
+                “{t.quote}”
+              </blockquote>
+              <figcaption className="flex items-center gap-3">
+                {t.photo ? (
+                  <Image
+                    src={t.photo.url}
+                    alt=""
+                    width={40}
+                    height={40}
+                    className="size-10 rounded-full border object-cover"
+                  />
+                ) : (
+                  <span
+                    aria-hidden="true"
+                    className="flex size-10 items-center justify-center rounded-full border bg-surface font-mono text-xs"
+                  >
+                    {initials(t.name)}
+                  </span>
+                )}
+                <span className="flex min-w-0 flex-col">
+                  {t.linkedinUrl ? (
+                    <a
+                      href={t.linkedinUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="truncate text-sm font-medium hover:underline"
+                    >
+                      {t.name}
+                    </a>
+                  ) : (
+                    <span className="truncate text-sm font-medium">{t.name}</span>
+                  )}
+                  <span className="truncate text-xs text-muted-foreground">
+                    {[t.role, t.company].filter(Boolean).join(", ")}
+                    {RELATIONSHIP_LABELS[t.relationship]
+                      ? ` · ${RELATIONSHIP_LABELS[t.relationship]}`
+                      : ""}
+                  </span>
+                </span>
+              </figcaption>
+            </figure>
+          </li>
+        ))}
+      </TestimonialsCarousel>
     </section>
   );
 }

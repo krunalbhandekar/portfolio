@@ -59,3 +59,21 @@ export const STATUS_LABELS: Record<string, string> = {
   maintained: "Maintained",
   archived: "Archived",
 };
+
+export const CASE_STUDY_SECTION_LABELS: Record<string, string> = {
+  problem: "Problem",
+  requirements: "Business requirements",
+  constraints: "Constraints",
+  architecture: "Architecture",
+  database: "Database design",
+  api: "API design",
+  implementation: "Implementation",
+  challenges: "Challenges",
+  solution: "Solution",
+  result: "Result",
+  learnings: "Learnings",
+  custom: "Notes",
+};
+
+export const sectionHeading = (s: { type: string; heading: string }) =>
+  s.heading || CASE_STUDY_SECTION_LABELS[s.type] || "Section";

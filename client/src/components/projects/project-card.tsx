@@ -1,3 +1,4 @@
+import { ViewTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, Lock, Star } from "lucide-react";
@@ -26,15 +27,18 @@ export function ProjectCard({ project, skillNames, priority, className }: Projec
     >
       <div className="relative aspect-video overflow-hidden border-b bg-muted">
         {project.thumbnail ? (
-          <Image
-            src={project.thumbnail.url}
-            alt={project.thumbnail.alt}
-            fill
-            sizes="(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
-            preload={priority}
-            fetchPriority={priority ? "high" : undefined}
-            className="object-cover transition-transform duration-500 group-hover/card:scale-[1.02]"
-          />
+          // Morphs into the detail page's hero image (React <ViewTransition>, portfolio.md §2.3).
+          <ViewTransition name={`project-thumb-${project.slug}`} share="morph" default="none">
+            <Image
+              src={project.thumbnail.url}
+              alt={project.thumbnail.alt}
+              fill
+              sizes="(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
+              preload={priority}
+              fetchPriority={priority ? "high" : undefined}
+              className="object-cover transition-transform duration-500 group-hover/card:scale-[1.02]"
+            />
+          </ViewTransition>
         ) : (
           <div
             className="flex size-full items-center justify-center bg-dots font-mono text-2xl text-muted-foreground"

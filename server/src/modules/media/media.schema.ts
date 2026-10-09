@@ -6,7 +6,7 @@ import { paginationQuerySchema } from "../../utils/pagination.js";
  * signature can't write elsewhere in the Cloudinary account.
  */
 export const MEDIA_FOLDER_PATTERN =
-  /^portfolio\/(general|brand|about|companies|certificates|resumes|blog|case-studies|projects(\/[a-z0-9]+(?:-[a-z0-9]+)*)?)$/;
+  /^portfolio\/(general|brand|about|companies|certificates|resumes|blog|case-studies|testimonials|engineering|projects(\/[a-z0-9]+(?:-[a-z0-9]+)*)?)$/;
 
 export const ALLOWED_FORMATS = ["jpg", "jpeg", "png", "webp", "gif", "avif", "pdf"] as const;
 export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024; // Cloudinary free plan limit

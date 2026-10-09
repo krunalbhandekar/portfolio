@@ -55,11 +55,12 @@ export async function loginWithGoogle(req: Request, credential: string) {
     });
     payload = ticket.getPayload();
   } catch (err) {
-    // Don't log `err` itself: google-auth-library includes the raw ID token in its messages.
-    logger.info(
-      { reason: err instanceof Error ? err.name : "unknown" },
-      "Google token verification failed",
-    );
+    // google-auth-library can include the raw ID token in its messages: redact JWT-like strings.
+    const reason =
+      err instanceof Error
+        ? err.message.replace(/[\w-]+\.[\w-]+\.[\w-]+/g, "[token]").slice(0, 300)
+        : "unknown";
+    logger.warn({ reason }, "Google token verification failed");
   }
 
   if (!payload?.email) {

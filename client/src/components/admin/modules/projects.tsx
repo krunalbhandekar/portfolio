@@ -233,6 +233,7 @@ export const projectsConfig: ResourceConfig = {
   singular: "Project",
   description: "Professional and personal projects with full engineering detail.",
   labelField: "title",
+  previewPath: (doc) => (doc.slug ? `/projects/${String(doc.slug)}` : null),
   columns: [
     {
       header: "Title",

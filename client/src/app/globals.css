@@ -309,3 +309,16 @@ html.js [data-reveal-group]:not([data-revealed]) [data-reveal-item] {
     transform: none;
   }
 }
+
+/* Project card → detail morph (React <ViewTransition share="morph">). */
+::view-transition-group(.morph) {
+  animation-duration: 380ms;
+  animation-timing-function: cubic-bezier(0.21, 0.47, 0.32, 0.98);
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

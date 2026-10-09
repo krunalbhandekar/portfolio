@@ -82,10 +82,71 @@ export const HOMEPAGE_SECTION_LABELS: Record<string, string> = {
   about: "Short about",
   career: "Career preview",
   expertise: "Technical expertise",
-  caseStudies: "Featured case studies (Phase 5)",
-  testimonials: "Testimonials (Phase 5)",
+  caseStudies: "Featured case studies",
+  testimonials: "Testimonials",
   blog: "Latest posts (Phase 6)",
 };
 
 export const labelFor = (options: SelectOption[], value: unknown) =>
   options.find((o) => o.value === value)?.label ?? String(value ?? "—");
+
+export const CASE_STUDY_SECTIONS = opts([
+  ["problem", "Problem"],
+  ["requirements", "Business requirements"],
+  ["constraints", "Constraints"],
+  ["architecture", "Architecture"],
+  ["database", "Database design"],
+  ["api", "API design"],
+  ["implementation", "Implementation"],
+  ["challenges", "Challenges"],
+  ["solution", "Solution"],
+  ["result", "Result"],
+  ["learnings", "Learnings"],
+  ["custom", "Custom"],
+]);
+export const ENGINEERING_TYPES = opts([
+  ["architecture", "Architecture"],
+  ["api", "API showcase"],
+  ["database", "Database design"],
+  ["devops", "DevOps / Infrastructure"],
+  ["decision", "Engineering decision (FAQ)"],
+]);
+export const HTTP_METHODS = opts(
+  ["GET", "POST", "PUT", "PATCH", "DELETE"].map((m) => [m, m] as [string, string]),
+);
+export const API_AUTH = opts([
+  ["none", "Public"],
+  ["user", "User session"],
+  ["admin", "Admin only"],
+  ["api-key", "API key"],
+]);
+export const PARAM_LOCATIONS = opts([
+  ["path", "Path"],
+  ["query", "Query"],
+  ["body", "Body"],
+  ["header", "Header"],
+]);
+export const FEATURE_AREAS = opts([
+  ["frontend", "Frontend"],
+  ["backend", "Backend"],
+  ["full-stack", "Full Stack"],
+  ["database", "Database"],
+  ["devops", "DevOps"],
+  ["integration", "Integration"],
+]);
+export const RELATIONSHIPS = opts([
+  ["manager", "Manager"],
+  ["colleague", "Colleague"],
+  ["client", "Client"],
+  ["mentor", "Mentor"],
+  ["other", "Other"],
+]);
+export const CERTIFICATION_TYPES = opts([
+  ["degree", "Degree"],
+  ["bootcamp", "Bootcamp"],
+  ["certification", "Certification"],
+  ["course", "Course"],
+  ["workshop", "Workshop"],
+  ["talk", "Talk"],
+  ["award", "Award"],
+]);

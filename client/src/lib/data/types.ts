@@ -67,6 +67,7 @@ export type ProjectDetail = ProjectCard & {
   metrics: { label: string; value: string }[];
   seo: { title: string; description: string; noindex: boolean };
   experience: { company: string; position: string; companyUrl?: string } | null;
+  caseStudy: { title: string; slug: string } | null;
   related: ProjectCard[];
   previous: { title: string; slug: string } | null;
   next: { title: string; slug: string } | null;
@@ -169,6 +170,8 @@ export type HomeData = {
   >[];
   skills: SkillSummary[];
   about: Pick<About, "headline" | "story" | "portrait"> | null;
+  caseStudies: CaseStudyCard[];
+  testimonials: Testimonial[];
 };
 
 export type Resume = {
@@ -182,5 +185,95 @@ export type Resume = {
 
 export type SitemapData = {
   projects: { slug: string; updatedAt: string }[];
+  caseStudies: { slug: string; updatedAt: string }[];
   updatedAt: Record<string, string | null>;
+};
+
+export type CaseStudyCard = {
+  _id: string;
+  title: string;
+  slug: string;
+  summary: string;
+  coverImage: Media | null;
+  readingTime: number;
+  featured: boolean;
+  project?: { title: string; slug: string } | null;
+  updatedAt: string;
+};
+
+export type CaseStudySection = { type: string; heading: string; content: string };
+
+export type CaseStudy = CaseStudyCard & {
+  sections: CaseStudySection[];
+  seo: { title: string; description: string; noindex: boolean };
+  project: ProjectCard | null;
+  more: CaseStudyCard[];
+  createdAt: string;
+};
+
+export type EngineeringItem = {
+  _id: string;
+  type: "architecture" | "api" | "database" | "devops" | "decision";
+  title: string;
+  slug: string;
+  summary: string;
+  content: string;
+  diagram: string;
+  project: { title: string; slug: string } | null;
+  api: {
+    method: string;
+    path: string;
+    auth: string;
+    params: {
+      name: string;
+      location: string;
+      type: string;
+      required: boolean;
+      description: string;
+    }[];
+    requestExample: string;
+    responseExample: string;
+    statusCodes: { code: string; description: string }[];
+  };
+};
+
+export type BuiltFeature = {
+  _id: string;
+  feature: string;
+  description: string;
+  area: string;
+  technologies: string[];
+  project: { title: string; slug: string } | null;
+  caseStudySlug: string | null;
+};
+
+export type Testimonial = {
+  _id: string;
+  quote: string;
+  name: string;
+  role: string;
+  company: string;
+  relationship: string;
+  photo: Media | null;
+  linkedinUrl: string;
+};
+
+export type Achievement = {
+  _id: string;
+  title: string;
+  description: string;
+  metric: string;
+  date: string | null;
+  project: { title: string; slug: string } | null;
+};
+
+export type Certification = {
+  _id: string;
+  title: string;
+  institution: string;
+  type: string;
+  date: string | null;
+  certificateImage: Media | null;
+  verifyUrl: string;
+  description: string;
 };

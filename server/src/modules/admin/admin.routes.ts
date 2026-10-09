@@ -1,10 +1,10 @@
 import { Router } from "express";
-import { isDatabaseUp } from "../../config/db.js";
 import { requireCsrfHeader } from "../../middlewares/csrf.js";
 import { requireAdmin } from "../../middlewares/require-admin.js";
 import { sendSuccess } from "../../utils/response.js";
-import { Admin } from "../admins/admin.model.js";
 import { contentRoutes } from "../content.routes.js";
+import { messagesRoutes } from "../messages/messages.routes.js";
+import { getDashboard } from "./dashboard.service.js";
 import { mediaRoutes } from "../media/media.routes.js";
 
 /**
@@ -14,11 +14,8 @@ import { mediaRoutes } from "../media/media.routes.js";
 export const adminRoutes = Router()
   .use(requireCsrfHeader, requireAdmin)
   .get("/dashboard", async (req, res) => {
-    const admin = await Admin.findById(req.admin!.id, { lastLoginAt: 1 }).lean();
-    sendSuccess(res, {
-      lastLoginAt: admin?.lastLoginAt ?? null,
-      database: isDatabaseUp() ? "up" : "down",
-    });
+    sendSuccess(res, await getDashboard(req.admin!.id));
   })
+  .use("/messages", messagesRoutes)
   .use("/media", mediaRoutes)
   .use(contentRoutes);

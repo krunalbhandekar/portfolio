@@ -1,7 +1,15 @@
 import { cacheLife, cacheTag } from "next/cache";
+import { draftMode } from "next/headers";
 import { siteConfig } from "@/config/site";
 import type {
   About,
+  Achievement,
+  BuiltFeature,
+  CaseStudy,
+  CaseStudyCard,
+  Certification,
+  EngineeringItem,
+  Testimonial,
   Capability,
   Experience,
   HomeData,
@@ -29,10 +37,13 @@ const TIMEOUT_MS = 20_000;
 
 type Fetched<T> = { ok: true; data: T } | { ok: false };
 
-async function fetchPublic<T>(path: string): Promise<Fetched<T | null>> {
+async function fetchPublic<T>(
+  path: string,
+  headers: Record<string, string> = {},
+): Promise<Fetched<T | null>> {
   try {
     const res = await fetch(`${API_URL}/api/v1${path}`, {
-      headers: { Accept: "application/json" },
+      headers: { Accept: "application/json", ...headers },
       signal: AbortSignal.timeout(TIMEOUT_MS),
     });
     if (res.status === 404) return { ok: true, data: null };
@@ -65,6 +76,23 @@ function normalizeCard<T extends ProjectCard>(p: T): T {
   return { ...p, technologies: arr(p.technologies), thumbnail: p.thumbnail ?? null };
 }
 
+/**
+ * Draft Mode (portfolio.md §5.3): when the admin previews, read from the secret-protected
+ * preview endpoint, which also returns unpublished documents. `draftMode()` is readable inside
+ * `use cache`, and Draft Mode bypasses the cache, so visitors never see preview data.
+ */
+async function draftAware(
+  publicPath: string,
+  previewPath: string,
+): Promise<{ path: string; headers: Record<string, string> }> {
+  const { isEnabled } = await draftMode();
+  if (!isEnabled) return { path: publicPath, headers: {} };
+  return {
+    path: previewPath,
+    headers: { "x-preview-secret": process.env.REVALIDATE_SECRET ?? "" },
+  };
+}
+
 function normalizeProject(p: ProjectDetail): ProjectDetail {
   return {
     ...normalizeCard(p),
@@ -94,6 +122,7 @@ function normalizeProject(p: ProjectDetail): ProjectDetail {
       noindex: p.seo?.noindex ?? false,
     },
     experience: p.experience ?? null,
+    caseStudy: p.caseStudy ?? null,
     related: arr(p.related).map(normalizeCard),
     previous: p.previous ?? null,
     next: p.next ?? null,
@@ -156,13 +185,23 @@ export async function getSettings(): Promise<Settings> {
 
 export async function getHome(): Promise<HomeData> {
   "use cache";
-  cacheTag("homepage", "projects", "experiences", "skills", "about");
+  cacheTag(
+    "homepage",
+    "projects",
+    "experiences",
+    "skills",
+    "about",
+    "case-studies",
+    "testimonials",
+  );
   const home = settle(await fetchPublic<HomeData>("/home"), {
     homepage: { sections: [] },
     featuredProjects: [],
     experiences: [],
     skills: [],
     about: null,
+    caseStudies: [],
+    testimonials: [],
   });
   return {
     homepage: { ...home.homepage, sections: arr(home.homepage?.sections) },
@@ -176,6 +215,8 @@ export async function getHome(): Promise<HomeData> {
           portrait: home.about.portrait ?? null,
         }
       : null,
+    caseStudies: arr(home.caseStudies),
+    testimonials: arr(home.testimonials),
   };
 }
 
@@ -200,11 +241,12 @@ export async function getProjects(): Promise<ProjectCard[]> {
 
 export async function getProject(slug: string): Promise<ProjectDetail | null> {
   "use cache";
-  cacheTag("projects", `project:${slug}`, "experiences");
-  const project = settle(
-    await fetchPublic<ProjectDetail>(`/projects/${encodeURIComponent(slug)}`),
-    null,
+  cacheTag("projects", `project:${slug}`, "experiences", "case-studies");
+  const source = await draftAware(
+    `/projects/${encodeURIComponent(slug)}`,
+    `/preview/projects/${encodeURIComponent(slug)}`,
   );
+  const project = settle(await fetchPublic<ProjectDetail>(source.path, source.headers), null);
   return project ? normalizeProject(project) : null;
 }
 
@@ -235,11 +277,102 @@ export async function getResume(): Promise<Resume | null> {
 
 export async function getSitemapData(): Promise<SitemapData> {
   "use cache";
-  cacheTag("projects", "settings", "about", "experiences", "skills");
-  return settle(await fetchPublic<SitemapData>("/sitemap-data"), { projects: [], updatedAt: {} });
+  cacheTag(
+    "projects",
+    "settings",
+    "about",
+    "experiences",
+    "skills",
+    "case-studies",
+    "engineering",
+    "built",
+  );
+  const data = settle(await fetchPublic<SitemapData>("/sitemap-data"), {
+    projects: [],
+    caseStudies: [],
+    updatedAt: {},
+  });
+  return { ...data, caseStudies: arr(data.caseStudies) };
 }
 
 /** Skill slug → display name, for tech chips stored as slugs. */
 export function skillNames(skills: { slug: string; name: string }[]) {
   return new Map(skills.map((s) => [s.slug, s.name]));
+}
+
+/* ---------------------------------------------------------------- Phase 5 content */
+
+export async function getCaseStudies(): Promise<CaseStudyCard[]> {
+  "use cache";
+  cacheTag("case-studies", "projects");
+  return arr(settle(await fetchPublic<CaseStudyCard[]>("/case-studies"), []));
+}
+
+export async function getCaseStudy(slug: string): Promise<CaseStudy | null> {
+  "use cache";
+  cacheTag("case-studies", `case-study:${slug}`, "projects");
+  const source = await draftAware(
+    `/case-studies/${encodeURIComponent(slug)}`,
+    `/preview/case-studies/${encodeURIComponent(slug)}`,
+  );
+  const study = settle(await fetchPublic<CaseStudy>(source.path, source.headers), null);
+  if (!study) return null;
+  return {
+    ...study,
+    sections: arr(study.sections),
+    seo: {
+      title: study.seo?.title ?? "",
+      description: study.seo?.description ?? "",
+      noindex: study.seo?.noindex ?? false,
+    },
+    project: study.project ? normalizeCard(study.project) : null,
+    more: arr(study.more),
+  };
+}
+
+export async function getEngineering(): Promise<EngineeringItem[]> {
+  "use cache";
+  cacheTag("engineering", "projects");
+  return arr(settle(await fetchPublic<EngineeringItem[]>("/engineering"), [])).map((item) => ({
+    ...item,
+    summary: item.summary ?? "",
+    content: item.content ?? "",
+    diagram: item.diagram ?? "",
+    api: {
+      method: item.api?.method ?? "GET",
+      path: item.api?.path ?? "",
+      auth: item.api?.auth ?? "none",
+      params: arr(item.api?.params),
+      requestExample: item.api?.requestExample ?? "",
+      responseExample: item.api?.responseExample ?? "",
+      statusCodes: arr(item.api?.statusCodes),
+    },
+  }));
+}
+
+export async function getBuiltFeatures(): Promise<BuiltFeature[]> {
+  "use cache";
+  cacheTag("built", "projects", "case-studies");
+  return arr(settle(await fetchPublic<BuiltFeature[]>("/built-features"), [])).map((f) => ({
+    ...f,
+    technologies: arr(f.technologies),
+  }));
+}
+
+export async function getTestimonials(): Promise<Testimonial[]> {
+  "use cache";
+  cacheTag("testimonials");
+  return arr(settle(await fetchPublic<Testimonial[]>("/testimonials"), []));
+}
+
+export async function getAchievements(): Promise<Achievement[]> {
+  "use cache";
+  cacheTag("achievements", "projects");
+  return arr(settle(await fetchPublic<Achievement[]>("/achievements"), []));
+}
+
+export async function getCertifications(): Promise<Certification[]> {
+  "use cache";
+  cacheTag("certifications");
+  return arr(settle(await fetchPublic<Certification[]>("/certifications"), []));
 }

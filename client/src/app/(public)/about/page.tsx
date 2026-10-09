@@ -7,8 +7,8 @@ import { RichText } from "@/components/shared/rich-text";
 import { SectionHeader } from "@/components/shared/section-header";
 import { Timeline, TimelineItem } from "@/components/shared/timeline";
 import { buttonVariants } from "@/components/ui/button";
-import { getAbout, getSettings } from "@/lib/data/public";
-import { excerpt } from "@/lib/format";
+import { getAbout, getAchievements, getCertifications, getSettings } from "@/lib/data/public";
+import { excerpt, formatMonth } from "@/lib/format";
 import { breadcrumbJsonLd, pageMetadata, personJsonLd } from "@/lib/seo";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -24,7 +24,12 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function AboutPage() {
-  const [settings, about] = await Promise.all([getSettings(), getAbout()]);
+  const [settings, about, achievements, certifications] = await Promise.all([
+    getSettings(),
+    getAbout(),
+    getAchievements(),
+    getCertifications(),
+  ]);
   const education = about?.education ?? [];
   const portrait = about?.portrait ?? settings.avatar;
 
@@ -133,6 +138,82 @@ export default async function AboutPage() {
                 {e.description ? (
                   <p className="mt-2 text-sm text-muted-foreground">{e.description}</p>
                 ) : null}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {achievements.length ? (
+        <section className="flex flex-col gap-8">
+          <SectionHeader index="04" eyebrow="Impact" title="Achievements" />
+          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {achievements.map((a) => (
+              <li key={a._id} className="flex flex-col gap-2 rounded-2xl border bg-card p-5">
+                {a.metric ? (
+                  <span className="font-mono text-2xl font-semibold tracking-tight text-brand-text">
+                    {a.metric}
+                  </span>
+                ) : null}
+                <h3 className="font-semibold">{a.title}</h3>
+                {a.description ? (
+                  <p className="text-sm text-muted-foreground">{a.description}</p>
+                ) : null}
+                <p className="mt-auto flex flex-wrap gap-x-2 pt-1 font-mono text-xs text-muted-foreground">
+                  {a.date ? <span>{formatMonth(a.date)}</span> : null}
+                  {a.project ? (
+                    <Link
+                      href={`/projects/${a.project.slug}`}
+                      className="hover:text-foreground hover:underline"
+                    >
+                      {a.project.title}
+                    </Link>
+                  ) : null}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {certifications.length ? (
+        <section className="flex flex-col gap-8">
+          <SectionHeader index="05" eyebrow="Learning" title="Certifications & courses" />
+          <ul className="grid gap-4 sm:grid-cols-2">
+            {certifications.map((c) => (
+              <li key={c._id} className="flex gap-4 rounded-2xl border bg-card p-5">
+                {c.certificateImage ? (
+                  <Image
+                    src={c.certificateImage.url}
+                    alt={c.certificateImage.alt}
+                    width={96}
+                    height={68}
+                    className="h-[68px] w-24 shrink-0 rounded-md border bg-white object-cover"
+                  />
+                ) : null}
+                <div className="flex min-w-0 flex-col gap-1">
+                  <p className="font-mono text-xs text-muted-foreground capitalize">
+                    {c.type}
+                    {c.date ? ` · ${formatMonth(c.date)}` : ""}
+                  </p>
+                  <h3 className="font-semibold">{c.title}</h3>
+                  {c.institution ? (
+                    <p className="text-sm text-muted-foreground">{c.institution}</p>
+                  ) : null}
+                  {c.description ? (
+                    <p className="text-sm text-muted-foreground">{c.description}</p>
+                  ) : null}
+                  {c.verifyUrl ? (
+                    <a
+                      href={c.verifyUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-1 w-fit text-xs text-brand-text hover:underline"
+                    >
+                      Verify credential<span className="sr-only"> for {c.title}</span> ↗
+                    </a>
+                  ) : null}
+                </div>
               </li>
             ))}
           </ul>

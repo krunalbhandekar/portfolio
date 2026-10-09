@@ -1121,27 +1121,39 @@ Configured in the cron-job.org dashboard. Each job sends a `POST` with the `x-jo
 **Depends on:** Phase 4. **Spec:** [3.7](#37-case-studies-top-46-projects)–[3.9](#39-what-i-built-explorer), [3.12](#312-testimonials)–[3.14](#314-certifications--education), [4](#4-additional-features-suggested) (#5, #9), [5.3](#53-cms-capabilities)
 
 **Server**
-- [ ] Models + admin/public routes: `caseStudies`, `engineeringItems`, `builtFeatures`, `testimonials`, `achievements`, `certifications`
-- [ ] Draft / published states enforced everywhere; preview endpoint returning drafts to an authenticated admin
-- [ ] Messages admin routes: list, mark read/unread, archive, delete, export CSV
+- [x] Models + admin/public routes: `caseStudies`, `engineeringItems`, `builtFeatures`, `testimonials`, `achievements`, `certifications`
+- [x] Draft / published states enforced everywhere; preview endpoint returning drafts to an authenticated admin
+- [x] Messages admin routes: list, mark read/unread, archive, delete, export CSV
 
 **Client — admin**
-- [ ] Modules: Case Studies (structured sections editor), Engineering (type-specific forms incl. API spec editor and Mermaid diagram field with live preview), What I Built, Testimonials (visibility toggle), Achievements, Certifications & Education
-- [ ] **Messages inbox** with unread badge in the sidebar
-- [ ] **Draft / Publish** workflow and **live preview** via Next.js Draft Mode (`/api/draft`)
-- [ ] Dashboard v1: counts (projects, drafts, unread messages), recent edits
+- [x] Modules: Case Studies (structured sections editor), Engineering (type-specific forms incl. API spec editor and Mermaid diagram field with live preview), What I Built, Testimonials (visibility toggle), Achievements, Certifications & Education
+- [x] **Messages inbox** with unread badge in the sidebar
+- [x] **Draft / Publish** workflow and **live preview** via Next.js Draft Mode (`/api/draft`)
+- [x] Dashboard v1: counts (projects, drafts, unread messages), recent edits
 
 **Client — public**
-- [ ] **Case study** pages: sticky TOC, reading time, share buttons, `Article` JSON-LD
-- [ ] **Engineering** section: architecture, API showcase, database design, DevOps, decisions FAQ (`FAQPage` JSON-LD)
-- [ ] **What I Built** explorer: searchable/filterable table linking to projects
-- [ ] Testimonials carousel (home), Achievements, Certifications & Education pages/sections
-- [ ] Motion polish: scroll reveals, View Transitions from project card → detail
+- [x] **Case study** pages: sticky TOC, reading time, share buttons, `Article` JSON-LD
+- [x] **Engineering** section: architecture, API showcase, database design, DevOps, decisions FAQ (`FAQPage` JSON-LD)
+- [x] **What I Built** explorer: searchable/filterable table linking to projects
+- [x] Testimonials carousel (home), Achievements, Certifications & Education pages/sections
+- [x] Motion polish: scroll reveals, View Transitions from project card → detail
 
 **Done when**
-- [ ] A draft can be previewed on the real layout but is invisible to visitors and absent from the sitemap
+- [x] A draft can be previewed on the real layout but is invisible to visitors and absent from the sitemap
 - [ ] At least 2 case studies and 1 item per engineering type are published
-- [ ] New contact messages appear in the inbox with an unread count
+- [x] New contact messages appear in the inbox with an unread count
+
+**Implementation notes**
+- **Preview** = Next.js Draft Mode. The admin's *Preview* button opens `/api/draft?path=…`; that route verifies the admin's own auth cookie against `GET /auth/me` before enabling Draft Mode (visitors get 401). In Draft Mode, project/case-study fetchers call the API's `/public/preview/*` endpoints with header `x-preview-secret: REVALIDATE_SECRET` (timing-safe check), so **`REVALIDATE_SECRET` must be identical on Vercel and Render**. An amber banner with *Exit preview* shows on every page while previewing.
+- Drafts never reach visitors: every public query filters `status: "published"` (testimonials also `visible`); drafts are excluded from the sitemap and their URLs render not-found + `noindex`.
+- Case-study reading time is computed on save (220 wpm) by a `transform` hook added to the generic CRUD router. Saving a case study revalidates `case-studies`, `projects` and `case-study:<slug>`.
+- Each project can link to one case study ("Read the case study" button on the project page; project card shown on the case study).
+- Engineering items are one collection with a `type` (architecture / api / database / devops / decision); API items have a structured spec (method, path, auth, params, request/response JSON, status codes) rendered with Shiki. Decisions emit `FAQPage` JSON-LD.
+- Testimonials carousel is CSS scroll-snap (no library). Card → detail morph uses React `<ViewTransition>` (disabled under reduced motion).
+- Messages: `GET /admin/messages?box=inbox|unread|archived|all&q=`, `PATCH /:id {read, archived}`, `DELETE /:id`, `GET /export.csv`, `GET /unread-count` (sidebar badge polls every 60 s).
+- Dashboard v1: unread messages, total drafts, last sign-in, API/DB status, per-module counts with drafts, and the 10 most recent edits from the audit log.
+- Navbar: Projects, Case Studies, Engineering, Experience, About, Contact. Footer resources: Resume, Skills, What I Built, Sitemap.
+- Verified: 28 API tests (draft filtering, preview secret, reading time, validation, inbox workflow, CSV, auth, dashboard) and 20 browser checks on a production build (preview on/off, anonymous preview blocked, TOC, JSON-LD, filters, inbox badge, admin edit → live page).
 
 **Not in this phase:** blog, GitHub, command palette, analytics, revisions.
 

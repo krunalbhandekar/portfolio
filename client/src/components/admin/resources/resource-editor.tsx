@@ -4,10 +4,11 @@ import { useEffect } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Eye, EyeOff, LoaderCircle, Save, Trash2 } from "lucide-react";
+import { ArrowLeft, ExternalLink, Eye, EyeOff, LoaderCircle, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { api } from "@/lib/api";
 import {
   useDeleteResource,
   usePublishResource,
@@ -65,6 +66,27 @@ export function ResourceEditor({ config, id }: { config: ResourceConfig; id: str
       },
       onError: (err) => toast.error("Couldn't delete", { description: err.message }),
     });
+  };
+
+  const previewPath =
+    !isNew && item.data && config.previewPath ? config.previewPath(item.data) : null;
+
+  /** Opens the real page in Draft Mode (portfolio.md §5.3), showing unpublished changes. */
+  const onPreview = async () => {
+    if (!previewPath) return;
+    if (isDirty) {
+      toast.warning("Save your changes first — preview shows the saved version");
+      return;
+    }
+    // Make sure the access cookie is fresh: /api/draft verifies it with the API.
+    const tab = window.open("about:blank", "_blank");
+    try {
+      await api.get("/auth/me");
+      if (tab) tab.location.href = `/api/draft?path=${encodeURIComponent(previewPath)}`;
+    } catch {
+      tab?.close();
+      toast.error("Couldn't start the preview — please sign in again");
+    }
   };
 
   const onTogglePublish = () => {
@@ -129,6 +151,11 @@ export function ResourceEditor({ config, id }: { config: ResourceConfig; id: str
                   >
                     <Trash2 aria-hidden="true" /> Delete
                   </Button>
+                  {previewPath ? (
+                    <Button type="button" variant="outline" onClick={onPreview}>
+                      <ExternalLink aria-hidden="true" /> Preview
+                    </Button>
+                  ) : null}
                   <Button
                     type="button"
                     variant="outline"
