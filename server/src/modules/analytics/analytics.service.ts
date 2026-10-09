@@ -13,17 +13,7 @@ import type { eventInput } from "./event.schema.js";
 const BOT = /bot|crawl|spider|slurp|preview|facebookexternalhit|lighthouse|headless|curl|wget/i;
 
 /** Own site, so internal navigation isn't counted as a referrer. */
-const ownHosts = new Set(
-  [env.CLIENT_URL, ...(env.CORS_ORIGINS?.split(",") ?? [])]
-    .map((url) => {
-      try {
-        return new URL(url.trim()).hostname;
-      } catch {
-        return "";
-      }
-    })
-    .filter(Boolean),
-);
+const ownHosts = new Set([new URL(env.CLIENT_URL).hostname]);
 
 function referrerHost(referrer: string) {
   if (!referrer) return "";

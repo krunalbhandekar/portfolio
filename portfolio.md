@@ -419,7 +419,6 @@ NODE_ENV=production
 PORT=10000
 MONGODB_URI=
 CLIENT_URL=https://krunalbhandekar.dev
-CORS_ORIGINS=                # optional extra origins, comma-separated
 TRUST_PROXY_HOPS=1
 COOKIE_DOMAIN=               # empty with the /api/v1 proxy (default)
 GOOGLE_CLIENT_ID=

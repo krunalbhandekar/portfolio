@@ -8,8 +8,6 @@ const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().positive().default(5050),
   CLIENT_URL: z.url(),
-  /** Extra allowed CORS origins, comma-separated (e.g. a Vercel preview URL). */
-  CORS_ORIGINS: z.string().optional(),
   /** Number of proxies in front of the app (Render = 1). Used for client IPs in logs/rate limits. */
   TRUST_PROXY_HOPS: z.coerce.number().int().min(0).default(1),
 
@@ -67,7 +65,5 @@ export type Env = typeof env;
 
 export const isProduction = env.NODE_ENV === "production";
 
-export const corsOrigins = [
-  env.CLIENT_URL,
-  ...(env.CORS_ORIGINS?.split(",").map((origin) => origin.trim()) ?? []),
-].filter(Boolean);
+/** The only origin allowed to call the API with cookies (CORS + CSRF origin check): the site. */
+export const corsOrigins = [new URL(env.CLIENT_URL).origin];
