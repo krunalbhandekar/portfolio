@@ -33,9 +33,6 @@ const envSchema = z.object({
 
   // Phase 4 — contact & monitoring
   RESEND_API_KEY: laterPhase,
-  /** Sender for notification emails. onboarding@resend.dev works without a verified domain,
-   *  but can only deliver to the Resend account owner's address. */
-  RESEND_FROM: z.string().default("Portfolio <onboarding@resend.dev>"),
   SENTRY_DSN: laterPhase,
 
   // Phase 6 — GitHub & scheduled jobs
