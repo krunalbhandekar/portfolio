@@ -418,7 +418,6 @@ NODE_ENV=production
 PORT=10000
 MONGODB_URI=
 CLIENT_URL=https://krunalbhandekar.dev
-TRUST_PROXY_HOPS=1
 GOOGLE_CLIENT_ID=
 ADMIN_EMAIL=krunalbhandekar10@gmail.com
 JWT_ACCESS_SECRET=
@@ -428,7 +427,6 @@ JOBS_SECRET=
 CLOUDINARY_URL=cloudinary://<api_key>:<api_secret>@<cloud_name>
 RESEND_API_KEY=
 GITHUB_TOKEN=
-SENTRY_DSN=
 ```
 
 **`client/.env`** (set in the Vercel dashboard)
@@ -439,7 +437,6 @@ API_URL=https://<render-service>.onrender.com   # server-only; /api/v1 proxy tar
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=
 REVALIDATE_SECRET=
-NEXT_PUBLIC_SENTRY_DSN=
 ```
 
 ---

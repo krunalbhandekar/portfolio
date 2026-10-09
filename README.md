@@ -62,7 +62,6 @@ Full, commented lists: [`server/.env.example`](server/.env.example) and [`client
 | `JOBS_SECRET` | for cron jobs | Header `x-jobs-secret` on `/api/v1/jobs/*` |
 | `RESEND_API_KEY` | optional | Contact/testimonial email notifications |
 | `GITHUB_TOKEN` | optional | Fine-grained, public repos read-only; needed for the contribution graph |
-| `TRUST_PROXY_HOPS` | optional | `1` on Render; `2` if visitor IPs show Vercel's (see `.env.example`) |
 
 **Client (Vercel)**: `NEXT_PUBLIC_SITE_URL`, `API_URL` (Render URL, no trailing slash, no `/api/v1`), `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `REVALIDATE_SECRET`.
 

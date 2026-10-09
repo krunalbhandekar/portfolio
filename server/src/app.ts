@@ -20,7 +20,15 @@ import { sendSuccess } from "./utils/response.js";
 export const app = express();
 
 app.disable("x-powered-by");
-app.set("trust proxy", env.TRUST_PROXY_HOPS);
+/*
+ * Proxies between the visitor and this API, so `req.ip` (rate limits, audit log) is the
+ * visitor's real IP rather than a proxy's:
+ *   production: browser -> Vercel (/api/v1 rewrite) -> Render load balancer -> API = 2 proxies
+ *   local:      browser -> Next.js dev server (/api/v1 rewrite) -> API          = 1 proxy;
+ *               2 is still fine there: Express then uses the furthest known address (yours).
+ * With 1, every production visitor would look like Vercel's IP and share one rate limit.
+ */
+app.set("trust proxy", 2);
 
 const REQUEST_ID = /^[\w-]{8,64}$/;
 app.use(

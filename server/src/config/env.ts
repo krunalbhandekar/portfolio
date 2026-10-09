@@ -8,8 +8,6 @@ const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().positive().default(5050),
   CLIENT_URL: z.url(),
-  /** Number of proxies in front of the app (Render = 1). Used for client IPs in logs/rate limits. */
-  TRUST_PROXY_HOPS: z.coerce.number().int().min(0).default(1),
 
   // Phase 2 — database & auth
   MONGODB_URI: z
@@ -33,7 +31,6 @@ const envSchema = z.object({
 
   // Phase 4 — contact & monitoring
   RESEND_API_KEY: laterPhase,
-  SENTRY_DSN: laterPhase,
 
   // Phase 6 — GitHub & scheduled jobs
   GITHUB_TOKEN: laterPhase,
