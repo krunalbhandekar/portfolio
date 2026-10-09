@@ -1219,43 +1219,57 @@ Configured in the cron-job.org dashboard. Each job sends a `POST` with the `x-jo
 **Depends on:** Phase 6. **Spec:** [4](#4-additional-features-suggested) (#5–6, #12–14, #16–17, #19–20), [12](#12-performance-accessibility--security), [13.3](#133-scheduled-jobs-cron-joborg-no-files-in-the-repo)
 
 **Server**
-- [ ] `revisions`: snapshot on every update; list + restore endpoints
-- [ ] Audit log for all admin writes (action, entity, ip)
-- [ ] `redirects` model; automatic 301 on slug change; public lookup used by the client
-- [ ] Scheduled publishing: `status: 'scheduled'` + `publishAt`; `POST /jobs/publish-scheduled`
-- [ ] Backups: `POST /jobs/backup` → JSON export to Cloudinary `portfolio/backups/` (private raw), keep last 7
-- [ ] `GET /admin/export`, `POST /admin/import` (validated, dry-run option)
-- [ ] `pages` model for Now / Uses / FAQ
+- [x] `revisions`: snapshot on every update; list + restore endpoints
+- [x] Audit log for all admin writes (action, entity, ip)
+- [x] `redirects` model; automatic 301 on slug change; public lookup used by the client
+- [x] Scheduled publishing: `status: 'scheduled'` + `publishAt`; `POST /jobs/publish-scheduled`
+- [x] Backups: `POST /jobs/backup` → JSON export to Cloudinary `portfolio/backups/` (private raw), keep last 7
+- [x] `GET /admin/export`, `POST /admin/import` (validated, dry-run option)
+- [x] `pages` model for Now / Uses / FAQ
 
 **Client — admin**
-- [ ] Revision history drawer with diff view and restore on every content type
-- [ ] Audit log page (filters by entity/date)
-- [ ] SEO module: global defaults, per-page overrides, redirects manager, sitemap preview
-- [ ] Schedule picker in the publish control
-- [ ] Backup page: list/download nightly backups, export/import JSON
-- [ ] Now / Uses / FAQ editors
-- [ ] Announcement banner control
+- [x] Revision history drawer with diff view and restore on every content type
+- [x] Audit log page (filters by entity/date)
+- [x] SEO module: global defaults, per-page overrides, redirects manager, sitemap preview
+- [x] Schedule picker in the publish control
+- [x] Backup page: list/download nightly backups, export/import JSON
+- [x] Now / Uses / FAQ editors
+- [x] Announcement banner control
 
 **Client — public**
-- [ ] `/now`, `/uses`, FAQ (with `FAQPage` JSON-LD)
-- [ ] Middleware/route handling for DB-driven 301 redirects
-- [ ] Announcement banner
+- [x] `/now`, `/uses`, FAQ (with `FAQPage` JSON-LD)
+- [x] Middleware/route handling for DB-driven 301 redirects
+- [x] Announcement banner
 
 **cron-job.org**
 - [ ] Publish-scheduled (every 15 min) and nightly backup jobs configured
 
 **Final audit**
-- [ ] Accessibility audit (axe + manual keyboard/screen reader pass), WCAG AA contrast in both themes
+- [x] Accessibility audit (axe + manual keyboard/screen reader pass), WCAG AA contrast in both themes
 - [ ] Performance audit: Lighthouse ≥ 95 on all public page types, Core Web Vitals in the green
-- [ ] Security review: CSP, CORS, rate limits, upload restrictions, dependency audit (`npm audit`)
-- [ ] Render cold-start UX review on admin and contact
-- [ ] `README.md`: local setup, env vars, deployment, cron jobs, restore-from-backup steps
+- [x] Security review: CSP, CORS, rate limits, upload restrictions, dependency audit (`npm audit`)
+- [x] Render cold-start UX review on admin and contact
+- [x] `README.md`: local setup, env vars, deployment, cron jobs, restore-from-backup steps
 
 **Done when**
-- [ ] Any content change can be reverted from the admin panel
-- [ ] Changing a project slug keeps old links working (301)
-- [ ] A scheduled post goes live automatically at its time (±15 min)
+- [x] Any content change can be reverted from the admin panel
+- [x] Changing a project slug keeps old links working (301)
+- [x] A scheduled post goes live automatically at its time (±15 min)
 - [ ] A nightly backup exists in Cloudinary and has been test-restored into a dev database once
+
+**Implementation notes**
+- **Revisions**: every update, publish, unpublish, schedule, delete and restore stores the *previous* state (`revisions`, last 30 per item) for all collections and singletons, via a shared resource registry filled by the CRUD/singleton routers. Restore snapshots the current state first (so it's undoable), re-creates deleted items with their original id, re-syncs media usage (reports media that no longer exists) and revalidates. Admin: **History** drawer in every editor (field-level diff, word-level for text) and **Recently deleted** in every list.
+- **Audit log**: all admin writes plus sign-ins (action, entity, IP, user agent); scheduled publishes are logged as the system. Admin → Audit log filters by content type, action, outcome and date.
+- **Redirects**: renaming a *published* project, case study, post or skill adds a 301 (old → new); chains are flattened and a path that becomes live again stops redirecting. Manual redirects (301/302/307/308, site path or https URL) in Admin → SEO → Redirects; `//host` targets are rejected (open redirect). The site applies them in `src/proxy.ts` (Next 16 Proxy) before rendering, using a map served by the site's own cached `/api/redirects` (revalidated by tag, kept 60 s in memory) — so redirects never wait for Render.
+- **Scheduling**: Schedule/Reschedule/Cancel in every editor (time in the admin's time zone); `POST /jobs/publish-scheduled` publishes due items across all collections (posts get `publishedAt`), revalidates and logs.
+- **Backups**: `POST /jobs/backup` and "Back up now" upload an Extended-JSON export to Cloudinary `portfolio/backups/` as a **private** raw file (signed 10-minute download links), keeping the newest 7. Excluded: admins, sessions, analytics events, revisions, audit log. **Import** (`text/plain` body up to 25 MB): Replace or Merge, schema-validated **dry run** first; a real import stores a "pre-import" backup and revalidates every tag.
+- **Pages**: Now / Uses / FAQ share a `pages` collection (keyed singletons); each is 404 and unlinked until switched on. `/faq` emits `FAQPage` JSON-LD.
+- **SEO module**: per-page title/description/noindex for the 16 fixed pages (applied by `pageMetadata`; noindex pages leave the sitemap), redirects manager, sitemap preview. Site-wide defaults stay in Site Settings; content items keep their own SEO fields.
+- **Announcement banner**: optional end date (checked in the browser, since pages are cached) and "visitors can close it" (remembered per text).
+- **Security**: strict CSP + `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, COOP (`same-origin-allow-popups` for Google sign-in) and HSTS from `next.config.ts` (dev server gets a relaxed CSP). `npm audit --omit=dev`: 0 vulnerabilities in both apps (remaining advisories are dev-only build tools: eslint-plugin-next / shadcn CLI via `braces`).
+- **Cold starts**: the admin shows "Waking up the server…" whenever a request takes more than 4 s.
+- **Found and fixed**: on-demand pages (new or renamed slugs) returned 500 once a Proxy existed because the navbar read `usePathname()` outside `<Suspense>`; protocol-relative redirect targets were accepted; Mermaid diagrams blocked the main thread on load (now deferred to first interaction, `/engineering` 86 → 94); contrast fixes (API status codes, draft labels, Shiki light theme → `github-light-high-contrast`).
+- **Verified**: 66 API checks (revisions, undelete, redirect chains, scheduling job, import dry-run/replace round trip, real private Cloudinary backup + signed download), 33 browser checks (incl. real 301s through the proxy and zero CSP violations), axe-core WCAG 2.1 AA: 0 violations on 21 public pages + 10 admin screens in light and dark. Lighthouse mobile (local, loaded machine): 87–96 performance (median ~94), 100 accessibility/best practices/SEO on every page type — re-check on the deployed site with PageSpeed Insights.
 
 ---
 

@@ -9,6 +9,7 @@ import { analyticsQuery } from "../analytics/event.schema.js";
 import { contentRoutes } from "../content.routes.js";
 import { githubRoutes } from "../github/github.routes.js";
 import { messagesRoutes } from "../messages/messages.routes.js";
+import { opsRoutes } from "../ops/ops.routes.js";
 import { getDashboard } from "./dashboard.service.js";
 import { mediaRoutes } from "../media/media.routes.js";
 
@@ -27,5 +28,6 @@ export const adminRoutes = Router()
   })
   .use("/github", githubRoutes)
   .use("/messages", messagesRoutes)
+  .use(opsRoutes)
   .use("/media", mediaRoutes)
   .use(contentRoutes);

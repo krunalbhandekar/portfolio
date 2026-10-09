@@ -74,7 +74,7 @@ export async function ApiCard({ item }: { item: EngineeringItem }) {
                   <td className="px-3 py-2 font-mono text-xs">
                     {p.name}
                     {p.required ? (
-                      <span className="text-destructive" title="Required">
+                      <span className="text-red-700 dark:text-red-400" title="Required">
                         {" "}
                         *
                       </span>
@@ -104,9 +104,9 @@ export async function ApiCard({ item }: { item: EngineeringItem }) {
               <span
                 className={
                   s.code.startsWith("2")
-                    ? "text-emerald-600 dark:text-emerald-400"
+                    ? "text-emerald-700 dark:text-emerald-400"
                     : s.code.startsWith("4") || s.code.startsWith("5")
-                      ? "text-destructive"
+                      ? "text-red-700 dark:text-red-400"
                       : ""
                 }
               >

@@ -17,7 +17,8 @@ async function highlight(code: string, lang: BundledLanguage) {
   cacheLife("max");
   return codeToHtml(code, {
     lang,
-    themes: { light: "github-light", dark: "github-dark-default" },
+    // High-contrast light theme: the regular one dips below WCAG AA on our code background.
+    themes: { light: "github-light-high-contrast", dark: "github-dark-default" },
     defaultColor: false,
   });
 }

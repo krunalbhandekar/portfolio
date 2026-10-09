@@ -2,6 +2,7 @@
 
 import {
   ColorField,
+  DateField,
   RepeaterField,
   SelectField,
   SwitchField,
@@ -147,6 +148,16 @@ function SettingsFields() {
         />
         <TextField name="announcement.text" label="Text" maxLength={160} />
         <TextField name="announcement.href" label="Link" placeholder="/blog/new-post" />
+        <SwitchField
+          name="announcement.dismissible"
+          label="Visitors can close it"
+          description="Closing hides it until you change the text."
+        />
+        <DateField
+          name="announcement.endsAt"
+          label="Hide after"
+          description="Optional end date; the banner disappears automatically."
+        />
       </FormSection>
 
       <FormSection
@@ -181,7 +192,7 @@ export const settingsConfig: SingletonConfig = {
     availabilityText: "",
     accentColor: "#34d399",
     socials: [],
-    announcement: { enabled: false, text: "", href: "" },
+    announcement: { enabled: false, text: "", href: "", dismissible: true, endsAt: null },
     calendarUrl: "",
     logo: null,
     avatar: null,

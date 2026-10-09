@@ -1,10 +1,19 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ExternalLink, Eye, EyeOff, LoaderCircle, Save, Trash2 } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarClock,
+  ExternalLink,
+  Eye,
+  EyeOff,
+  LoaderCircle,
+  Save,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,7 +23,10 @@ import {
   usePublishResource,
   useResourceItem,
   useSaveResource,
+  useScheduleResource,
 } from "@/lib/admin/resource-api";
+import { formatWhen, RevisionHistory } from "../history/revision-history";
+import { ScheduleDialog } from "../kit/schedule-dialog";
 import { useConfirm } from "../kit/confirm-dialog";
 import { PageHeader, StatusPill } from "../kit/layout";
 import { useUnsavedChangesWarning } from "../kit/use-unsaved-changes";
@@ -30,6 +42,8 @@ export function ResourceEditor({ config, id }: { config: ResourceConfig; id: str
   const save = useSaveResource(config.apiPath);
   const remove = useDeleteResource(config.apiPath);
   const publish = usePublishResource(config.apiPath);
+  const schedule = useScheduleResource(config.apiPath);
+  const [scheduling, setScheduling] = useState(false);
 
   const form = useForm({ defaultValues: config.defaults, mode: "onSubmit" });
   const { isDirty, isSubmitting } = form.formState;
@@ -68,6 +82,10 @@ export function ResourceEditor({ config, id }: { config: ResourceConfig; id: str
     });
   };
 
+  const published = item.data?.status === "published";
+  const scheduledAt =
+    item.data?.status === "scheduled" && item.data.publishAt ? String(item.data.publishAt) : null;
+
   const previewPath =
     !isNew && item.data && config.previewPath ? config.previewPath(item.data) : null;
 
@@ -89,17 +107,34 @@ export function ResourceEditor({ config, id }: { config: ResourceConfig; id: str
     }
   };
 
+  const onSchedule = (publishAt: Date) =>
+    schedule.mutate(
+      { id, publishAt },
+      {
+        onSuccess: () => {
+          setScheduling(false);
+          toast.success(`Scheduled for ${formatWhen(publishAt.toISOString())}`);
+        },
+        onError: (err) => toast.error("Couldn't schedule", { description: err.message }),
+      },
+    );
+
   const onTogglePublish = () => {
     if (isDirty) {
       toast.warning("Save your changes first");
       return;
     }
     publish.mutate(
-      { id, publish: item.data?.status !== "published" },
+      // "Publish" on a scheduled item cancels the schedule (back to draft); publish is separate.
+      { id, publish: item.data?.status === "draft" },
       {
         onSuccess: (saved) =>
           toast.success(
-            saved.status === "published" ? "Published — live on the site" : "Moved to drafts",
+            saved.status === "published"
+              ? "Published — live on the site"
+              : scheduledAt
+                ? "Schedule cancelled — moved to drafts"
+                : "Moved to drafts",
           ),
         onError: (err) => toast.error("Couldn't change status", { description: err.message }),
       },
@@ -121,7 +156,6 @@ export function ResourceEditor({ config, id }: { config: ResourceConfig; id: str
   const label = isNew
     ? `New ${config.singular.toLowerCase()}`
     : String(item.data?.[config.labelField] || config.singular);
-  const published = item.data?.status === "published";
 
   return (
     <FormProvider {...form}>
@@ -136,6 +170,11 @@ export function ResourceEditor({ config, id }: { config: ResourceConfig; id: str
           eyebrow={
             <span className="flex items-center gap-2">
               {config.singular} {!isNew ? <StatusPill status={item.data?.status} /> : null}
+              {scheduledAt ? (
+                <span className="font-mono text-[0.7rem] text-sky-700 normal-case dark:text-sky-300">
+                  {formatWhen(scheduledAt)}
+                </span>
+              ) : null}
             </span>
           }
           title={label}
@@ -151,6 +190,13 @@ export function ResourceEditor({ config, id }: { config: ResourceConfig; id: str
                   >
                     <Trash2 aria-hidden="true" /> Delete
                   </Button>
+                  <RevisionHistory
+                    resource={config.apiPath}
+                    documentId={id}
+                    current={item.data}
+                    disabled={isDirty}
+                    onRestored={() => void item.refetch()}
+                  />
                   {previewPath ? (
                     <Button type="button" variant="outline" onClick={onPreview}>
                       <ExternalLink aria-hidden="true" /> Preview
@@ -162,9 +208,25 @@ export function ResourceEditor({ config, id }: { config: ResourceConfig; id: str
                     onClick={onTogglePublish}
                     disabled={publish.isPending}
                   >
-                    {published ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
-                    {published ? "Unpublish" : "Publish"}
+                    {published || scheduledAt ? (
+                      <EyeOff aria-hidden="true" />
+                    ) : (
+                      <Eye aria-hidden="true" />
+                    )}
+                    {published ? "Unpublish" : scheduledAt ? "Cancel schedule" : "Publish"}
                   </Button>
+                  {!published ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() =>
+                        isDirty ? toast.warning("Save your changes first") : setScheduling(true)
+                      }
+                    >
+                      <CalendarClock aria-hidden="true" />
+                      {scheduledAt ? "Reschedule" : "Schedule"}
+                    </Button>
+                  ) : null}
                 </>
               ) : null}
               <Button type="submit" disabled={isSubmitting || (!isNew && !isDirty)}>
@@ -179,6 +241,15 @@ export function ResourceEditor({ config, id }: { config: ResourceConfig; id: str
           }
         />
         <config.Fields />
+        {scheduling ? (
+          <ScheduleDialog
+            open
+            onOpenChange={setScheduling}
+            initial={scheduledAt}
+            pending={schedule.isPending}
+            onSchedule={onSchedule}
+          />
+        ) : null}
         <div className="sticky bottom-0 -mx-4 flex justify-end gap-2 border-t bg-background/85 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-10 lg:px-10">
           {isDirty ? (
             <span className="mr-auto self-center text-xs text-muted-foreground">

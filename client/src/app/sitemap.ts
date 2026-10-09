@@ -11,7 +11,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     null,
   );
 
-  return [
+  const entries: MetadataRoute.Sitemap = [
     {
       url: absoluteUrl("/"),
       lastModified: at(data.updatedAt.settings),
@@ -94,5 +94,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: absoluteUrl("/hire"), changeFrequency: "monthly", priority: 0.6 },
     { url: absoluteUrl("/resume"), changeFrequency: "monthly", priority: 0.6 },
     { url: absoluteUrl("/contact"), changeFrequency: "yearly", priority: 0.5 },
+    ...data.pages.map((p) => ({
+      url: absoluteUrl(`/${p.key}`),
+      lastModified: at(p.updatedAt),
+      changeFrequency: "monthly" as const,
+      priority: 0.4,
+    })),
   ];
+  // Fixed pages marked "noindex" in Admin → SEO stay out of the sitemap.
+  const hidden = new Set(data.noindex.map((path) => absoluteUrl(path)));
+  return entries.filter((e) => !hidden.has(e.url));
 }

@@ -162,7 +162,7 @@ function CloudinaryWidget() {
               <span
                 className={cn(
                   "font-mono text-xs",
-                  warn && "font-semibold text-amber-600 dark:text-amber-400",
+                  warn && "font-semibold text-amber-700 dark:text-amber-400",
                 )}
               >
                 {data.credits.used.toFixed(2)}

@@ -39,21 +39,24 @@ type RequestOptions = {
   signal?: AbortSignal;
   /** Set false for auth endpoints so a 401 doesn't trigger a refresh loop. */
   refreshOn401?: boolean;
+  /** Raw text body (sent as text/plain instead of JSON), e.g. a backup file to import. */
+  text?: string;
 };
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function send(method: Method, path: string, { body, signal }: RequestOptions) {
+async function send(method: Method, path: string, { body, signal, text }: RequestOptions) {
   const timeout = AbortSignal.timeout(TIMEOUT_MS);
   const headers: Record<string, string> = { Accept: "application/json", ...CSRF_HEADER };
-  if (body !== undefined) headers["Content-Type"] = "application/json";
+  if (text !== undefined) headers["Content-Type"] = "text/plain; charset=utf-8";
+  else if (body !== undefined) headers["Content-Type"] = "application/json";
 
   for (let attempt = 0; ; attempt++) {
     try {
       const res = await fetch(`${API_BASE}${path}`, {
         method,
         headers,
-        body: body === undefined ? undefined : JSON.stringify(body),
+        body: text !== undefined ? text : body === undefined ? undefined : JSON.stringify(body),
         credentials: "include",
         signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
       });
@@ -135,7 +138,16 @@ async function request<T>(method: Method, path: string, options: RequestOptions 
   return parse<T>(await sendWithRefresh(method, path, options));
 }
 
+/** Downloads a file endpoint (e.g. the JSON export) with the session, returning a Blob. */
+async function download(path: string) {
+  const res = await sendWithRefresh("GET", path, {});
+  if (!res.ok) await parse(res); // throws the API's error
+  const name = /filename="([^"]+)"/.exec(res.headers.get("content-disposition") ?? "")?.[1];
+  return { blob: await res.blob(), filename: name ?? "download" };
+}
+
 export const api = {
+  download,
   get: <T>(path: string, options?: Omit<RequestOptions, "body">) =>
     request<T>("GET", path, options),
   /** GET a paginated list, keeping the `meta` block. */

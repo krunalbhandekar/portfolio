@@ -21,7 +21,11 @@ import { Experience } from "./experiences/experience.model.js";
 import { experienceInput } from "./experiences/experience.schema.js";
 import { Homepage } from "./homepage/homepage.model.js";
 import { HOMEPAGE_SECTIONS, homepageInput } from "./homepage/homepage.schema.js";
+import { Page } from "./pages/page.model.js";
+import { faqPageInput, nowPageInput, PAGE_DEFAULTS, usesPageInput } from "./pages/page.schema.js";
 import { Post } from "./posts/post.model.js";
+import { SeoSettings } from "./seo/seo.model.js";
+import { seoInput } from "./seo/seo.schema.js";
 import { postInput, postReadingTime } from "./posts/post.schema.js";
 import { Project } from "./projects/project.model.js";
 import { projectInput } from "./projects/project.schema.js";
@@ -56,7 +60,7 @@ export const contentRoutes = Router()
         availabilityText: "",
         accentColor: "#34d399",
         socials: [],
-        announcement: { enabled: false, text: "", href: "" },
+        announcement: { enabled: false, text: "", href: "", dismissible: true, endsAt: null },
         calendarUrl: "",
         logo: null,
         avatar: null,
@@ -64,6 +68,54 @@ export const contentRoutes = Router()
         recruiter: RECRUITER_DEFAULTS,
       },
       tags: ["settings"],
+    }),
+  )
+  // Phase 7: Now / Uses / FAQ pages (one collection, keyed) and per-page SEO overrides.
+  .use(
+    "/pages/now",
+    singletonRouter({
+      resource: "pages.now",
+      label: "Now page",
+      key: "now",
+      model: Page,
+      input: nowPageInput,
+      defaults: PAGE_DEFAULTS.now,
+      tags: ["pages", "page:now"],
+    }),
+  )
+  .use(
+    "/pages/uses",
+    singletonRouter({
+      resource: "pages.uses",
+      label: "Uses page",
+      key: "uses",
+      model: Page,
+      input: usesPageInput,
+      defaults: PAGE_DEFAULTS.uses,
+      tags: ["pages", "page:uses"],
+    }),
+  )
+  .use(
+    "/pages/faq",
+    singletonRouter({
+      resource: "pages.faq",
+      label: "FAQ page",
+      key: "faq",
+      model: Page,
+      input: faqPageInput,
+      defaults: PAGE_DEFAULTS.faq,
+      tags: ["pages", "page:faq"],
+    }),
+  )
+  .use(
+    "/seo",
+    singletonRouter({
+      resource: "seo",
+      label: "SEO",
+      model: SeoSettings,
+      input: seoInput,
+      defaults: { pages: [] },
+      tags: ["seo"],
     }),
   )
   .use(
@@ -121,6 +173,7 @@ export const contentRoutes = Router()
     "/projects",
     crudRouter({
       resource: "projects",
+      publicPath: (slug) => `/projects/${slug}`,
       model: Project,
       input: projectInput,
       labelField: "title",
@@ -138,6 +191,7 @@ export const contentRoutes = Router()
     "/skills",
     crudRouter({
       resource: "skills",
+      publicPath: (slug) => `/skills/${slug}`,
       model: Skill,
       input: skillInput,
       labelField: "name",
@@ -183,6 +237,7 @@ export const contentRoutes = Router()
     "/case-studies",
     crudRouter({
       resource: "case-studies",
+      publicPath: (slug) => `/case-studies/${slug}`,
       model: CaseStudy,
       input: caseStudyInput,
       labelField: "title",
@@ -272,6 +327,7 @@ export const contentRoutes = Router()
     "/posts",
     crudRouter({
       resource: "posts",
+      publicPath: (slug) => `/blog/${slug}`,
       model: Post,
       input: postInput,
       labelField: "title",

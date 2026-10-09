@@ -144,7 +144,7 @@ export function DashboardOverview() {
                     <span className="font-mono text-xs text-muted-foreground">
                       {c.total}
                       {c.drafts ? (
-                        <span className="ml-2 text-amber-600 dark:text-amber-400">
+                        <span className="ml-2 text-amber-700 dark:text-amber-400">
                           {c.drafts} draft{c.drafts === 1 ? "" : "s"}
                         </span>
                       ) : null}

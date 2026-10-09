@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useSaveSingleton, useSingleton } from "@/lib/admin/resource-api";
 import { PageHeader } from "../kit/layout";
 import { useUnsavedChangesWarning } from "../kit/use-unsaved-changes";
+import { RevisionHistory } from "../history/revision-history";
 import { handleSaveError, toFormValues } from "./form-utils";
 import type { SingletonConfig } from "./types";
 
@@ -21,13 +22,21 @@ export function SingletonEditor({ config }: { config: SingletonConfig }) {
   useUnsavedChangesWarning(isDirty && !isSubmitting);
 
   useEffect(() => {
-    if (doc.data) form.reset(toFormValues(config.defaults, doc.data));
-  }, [doc.data, config.defaults, form]);
+    if (doc.data)
+      form.reset(
+        toFormValues(
+          config.defaults,
+          config.fromDocument ? config.fromDocument(doc.data) : doc.data,
+        ),
+      );
+  }, [doc.data, config, form]);
 
   const onSubmit = form.handleSubmit(async (values) => {
     try {
       const saved = await save.mutateAsync(values);
-      form.reset(toFormValues(config.defaults, saved));
+      form.reset(
+        toFormValues(config.defaults, config.fromDocument ? config.fromDocument(saved) : saved),
+      );
       toast.success("Saved — the site will refresh shortly");
     } catch (error) {
       handleSaveError(error, form.setError);
@@ -44,6 +53,16 @@ export function SingletonEditor({ config }: { config: SingletonConfig }) {
   }
   if (doc.isError)
     return <p className="mx-auto max-w-4xl text-sm text-destructive">{doc.error.message}</p>;
+
+  const history = (
+    <RevisionHistory
+      resource={config.resource ?? config.apiPath}
+      documentId={doc.data?._id ? String(doc.data._id) : undefined}
+      current={doc.data}
+      disabled={isDirty}
+      onRestored={() => void doc.refetch()}
+    />
+  );
 
   const saveButton = (
     <Button type="submit" disabled={isSubmitting || !isDirty}>
@@ -63,7 +82,12 @@ export function SingletonEditor({ config }: { config: SingletonConfig }) {
           eyebrow="Content"
           title={config.title}
           description={config.description}
-          actions={saveButton}
+          actions={
+            <>
+              {history}
+              {saveButton}
+            </>
+          }
         />
         <config.Fields />
         <div className="sticky bottom-0 -mx-4 flex justify-end gap-2 border-t bg-background/85 px-4 py-3 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-10 lg:px-10">

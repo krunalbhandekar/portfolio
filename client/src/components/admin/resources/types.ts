@@ -34,4 +34,8 @@ export type SingletonConfig = {
   description: string;
   defaults: Record<string, unknown>;
   Fields: ComponentType;
+  /** Server resource name for revision history, when it differs from `apiPath`. */
+  resource?: string;
+  /** Shapes the loaded document into form values (e.g. one row per fixed page). */
+  fromDocument?: (doc: Record<string, unknown>) => Record<string, unknown>;
 };

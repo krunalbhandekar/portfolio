@@ -25,6 +25,13 @@ export function pageMetadata({
   /** The route has its own opengraph-image file (e.g. projects); don't set a default. */
   ownImage?: boolean;
 }): Metadata {
+  // Admin → SEO overrides for this fixed page win over the page's own defaults.
+  const override = settings.seoPages?.find((p) => p.path === path);
+  if (override) {
+    title = override.title || title;
+    description = override.description || description;
+    noindex = noindex || override.noindex;
+  }
   const desc =
     description ||
     settings.seo.description ||

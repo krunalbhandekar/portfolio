@@ -79,10 +79,10 @@ export const adminModules: AdminModule[] = [
   { label: "Messages", href: "/admin/messages", icon: Mail, phase: 5, available: true },
   { label: "Blog", href: "/admin/blog", icon: NotebookPen, phase: 6, available: true },
   { label: "GitHub", href: "/admin/github", icon: GitBranch, phase: 6, available: true },
-  { label: "Now / Uses / FAQ", href: "/admin/pages", icon: Sparkles, phase: 7, available: false },
-  { label: "SEO", href: "/admin/seo", icon: Search, phase: 7, available: false },
-  { label: "Revisions & Audit", href: "/admin/audit", icon: History, phase: 7, available: false },
-  { label: "Backup", href: "/admin/backup", icon: DatabaseBackup, phase: 7, available: false },
+  { label: "Now / Uses / FAQ", href: "/admin/pages", icon: Sparkles, phase: 7, available: true },
+  { label: "SEO", href: "/admin/seo", icon: Search, phase: 7, available: true },
+  { label: "Audit log", href: "/admin/audit", icon: History, phase: 7, available: true },
+  { label: "Backup", href: "/admin/backup", icon: DatabaseBackup, phase: 7, available: true },
 ];
 
 export const availableModules = adminModules.filter((module) => module.available);

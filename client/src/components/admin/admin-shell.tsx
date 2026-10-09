@@ -10,6 +10,7 @@ import { siteConfig } from "@/config/site";
 import { useCurrentAdmin, useLogout } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { AdminAvatar } from "./admin-avatar";
+import { ColdStartNotice } from "./cold-start-notice";
 import { availableModules } from "./admin-modules";
 import { useUnreadCount } from "./messages/use-messages";
 import { usePendingTestimonials } from "./modules/use-pending-testimonials";
@@ -122,6 +123,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
         </header>
         <main id="main" className="flex-1 px-4 py-8 sm:px-6 lg:px-10">
           {children}
+          <ColdStartNotice />
         </main>
       </div>
     </div>

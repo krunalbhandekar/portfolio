@@ -24,6 +24,7 @@ import {
 } from "../testimonials/visitor-testimonial.service.js";
 import { getFeedPosts, getPost, getPosts } from "../posts/post.public.js";
 import { getSearchIndex, search } from "../search/search.service.js";
+import { getRedirectMap } from "../redirects/redirect.service.js";
 import { getSkill } from "../skills/skill.public.js";
 import * as service from "./public.service.js";
 import { requirePreviewSecret } from "../../middlewares/preview-secret.js";
@@ -137,6 +138,12 @@ export const publicRoutes = Router()
     await recordEvent(req, req.body);
     res.status(204).end();
   })
+  // Phase 7
+  .get("/pages", async (_req, res) => sendSuccess(res, await service.getVisiblePages()))
+  .get("/pages/:key", async (req, res) =>
+    sendSuccess(res, await service.getPage(String(req.params.key))),
+  )
+  .get("/redirects", async (_req, res) => sendSuccess(res, await getRedirectMap()))
   .get("/sitemap-data", async (_req, res) => sendSuccess(res, await service.getSitemapData()))
   .post("/contact", contactLimiter, validate({ body: contactSchema }), async (req, res) =>
     sendSuccess(res, await submitContact(req, req.body), { status: 201 }),

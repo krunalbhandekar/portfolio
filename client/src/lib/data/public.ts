@@ -4,6 +4,10 @@ import type { FlowData } from "@/components/diagrams/flow-layout";
 import { siteConfig } from "@/config/site";
 import type {
   About,
+  FaqPage,
+  NowPage,
+  RedirectRule,
+  UsesPage,
   FeedPost,
   GithubData,
   Post,
@@ -178,11 +182,12 @@ export const fallbackSettings: Settings = {
   availabilityText: siteConfig.availability,
   accentColor: "",
   socials: siteConfig.socials.map((s) => ({ platform: s.icon, label: s.label, url: s.href })),
-  announcement: { enabled: false, text: "", href: "" },
+  announcement: { enabled: false, text: "", href: "", dismissible: true, endsAt: null },
   calendarUrl: "",
   avatar: null,
   logo: null,
   seo: { title: "", description: "", ogImage: null },
+  seoPages: [],
   recruiter: {
     experience: "",
     targetRoles: "",
@@ -197,7 +202,7 @@ export const fallbackSettings: Settings = {
 
 export async function getSettings(): Promise<Settings> {
   "use cache";
-  cacheTag("settings");
+  cacheTag("settings", "seo");
   const result = await fetchPublic<Settings>("/settings");
   const settings = settle(result, fallbackSettings);
   return {
@@ -205,6 +210,8 @@ export async function getSettings(): Promise<Settings> {
     ...settings,
     availabilityText: settings.availabilityText ?? "",
     recruiter: { ...fallbackSettings.recruiter, ...settings.recruiter },
+    announcement: { ...fallbackSettings.announcement, ...settings.announcement },
+    seoPages: arr(settings.seoPages),
   };
 }
 
@@ -316,12 +323,16 @@ export async function getSitemapData(): Promise<SitemapData> {
     "built",
     "posts",
     "github",
+    "pages",
+    "seo",
   );
   const data = settle(await fetchPublic<SitemapData>("/sitemap-data"), {
     projects: [],
     caseStudies: [],
     posts: [],
     skills: [],
+    pages: [],
+    noindex: [],
     updatedAt: {},
   });
   return {
@@ -329,6 +340,8 @@ export async function getSitemapData(): Promise<SitemapData> {
     caseStudies: arr(data.caseStudies),
     posts: arr(data.posts),
     skills: arr(data.skills),
+    pages: arr(data.pages),
+    noindex: arr(data.noindex),
   };
 }
 
@@ -506,4 +519,40 @@ export async function getResumes(): Promise<(Resume & { isDefault: boolean })[]>
   "use cache";
   cacheTag("resumes");
   return arr(settle(await fetchPublic<(Resume & { isDefault: boolean })[]>("/resumes"), []));
+}
+
+/* ---------------------------------------------------------------- Phase 7 */
+
+type PageByKey = { now: NowPage; uses: UsesPage; faq: FaqPage };
+
+/** Now / Uses / FAQ page, or null while it's switched off in the admin. */
+export async function getPage<K extends keyof PageByKey>(key: K): Promise<PageByKey[K] | null> {
+  "use cache";
+  cacheTag("pages", `page:${key}`);
+  const page = settle(await fetchPublic<PageByKey[K]>(`/pages/${key}`), null);
+  if (!page) return null;
+  const base = page as PageByKey[K] & Record<string, unknown>;
+  return {
+    ...base,
+    title: base.title || key.toUpperCase(),
+    intro: base.intro ?? "",
+    seo: { title: base.seo?.title ?? "", description: base.seo?.description ?? "" },
+    ...(key === "now" ? { content: (base.content as string) ?? "" } : {}),
+    ...(key === "uses" ? { sections: arr(base.sections as UsesPage["sections"]) } : {}),
+    ...(key === "faq" ? { items: arr(base.items as FaqPage["items"]) } : {}),
+  };
+}
+
+/** Which simple pages are switched on (footer links, ⌘K). */
+export async function getVisiblePages(): Promise<string[]> {
+  "use cache";
+  cacheTag("pages");
+  return arr(settle(await fetchPublic<{ key: string }[]>("/pages"), [])).map((p) => p.key);
+}
+
+/** Redirect map for the proxy (served from Next's cache, never waits for Render). */
+export async function getRedirects(): Promise<RedirectRule[]> {
+  "use cache";
+  cacheTag("redirects");
+  return arr(settle(await fetchPublic<RedirectRule[]>("/redirects"), []));
 }

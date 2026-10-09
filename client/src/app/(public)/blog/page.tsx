@@ -58,11 +58,16 @@ export default async function BlogPage() {
       {items.length === 0 ? (
         <EmptyState icon={NotebookPen} title="First posts coming soon" />
       ) : (
-        <BlogExplorer
-          posts={items}
-          tags={tags.map((t) => t.tag)}
-          cards={Object.fromEntries(items.map((p) => [p.slug, <PostCard key={p.slug} post={p} />]))}
-        />
+        <>
+          <h2 className="sr-only">All posts</h2>
+          <BlogExplorer
+            posts={items}
+            tags={tags.map((t) => t.tag)}
+            cards={Object.fromEntries(
+              items.map((p) => [p.slug, <PostCard key={p.slug} post={p} />]),
+            )}
+          />
+        </>
       )}
     </div>
   );

@@ -8,6 +8,12 @@ import { footerResources, mainNav } from "@/config/site";
 import type { Settings } from "@/lib/data/types";
 import { AdminLink } from "./admin-link";
 
+const PAGE_LINKS = [
+  { key: "now", label: "Now", href: "/now" },
+  { key: "uses", label: "Uses", href: "/uses" },
+  { key: "faq", label: "FAQ", href: "/faq" },
+];
+
 async function getCurrentYear() {
   "use cache";
   cacheLife("days");
@@ -25,7 +31,14 @@ function FooterColumn({ title, children }: { title: string; children: React.Reac
 
 const linkClass = "text-muted-foreground transition-colors hover:text-foreground";
 
-export async function Footer({ settings }: { settings: Settings }) {
+export async function Footer({
+  settings,
+  visiblePages = [],
+}: {
+  settings: Settings;
+  /** Now / Uses / FAQ pages that are switched on. */
+  visiblePages?: string[];
+}) {
   const year = await getCurrentYear();
 
   return (
@@ -81,20 +94,22 @@ export async function Footer({ settings }: { settings: Settings }) {
         </FooterColumn>
 
         <FooterColumn title="Resources">
-          {footerResources.map((item) => (
-            <li key={item.href}>
-              {/* Feeds/files are route handlers, not pages: plain links (full load). */}
-              {/\.(xml|vcf)$/.test(item.href) ? (
-                <a href={item.href} className={linkClass}>
-                  {item.label}
-                </a>
-              ) : (
-                <Link href={item.href} className={linkClass} prefetch={false}>
-                  {item.label}
-                </Link>
-              )}
-            </li>
-          ))}
+          {[...footerResources, ...PAGE_LINKS.filter((p) => visiblePages.includes(p.key))].map(
+            (item) => (
+              <li key={item.href}>
+                {/* Feeds/files are route handlers, not pages: plain links (full load). */}
+                {/\.(xml|vcf)$/.test(item.href) ? (
+                  <a href={item.href} className={linkClass}>
+                    {item.label}
+                  </a>
+                ) : (
+                  <Link href={item.href} className={linkClass} prefetch={false}>
+                    {item.label}
+                  </Link>
+                )}
+              </li>
+            ),
+          )}
         </FooterColumn>
       </div>
 

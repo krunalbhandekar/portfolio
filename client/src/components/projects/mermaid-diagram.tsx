@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { afterFirstInteraction } from "@/lib/defer";
 
 /**
  * Renders Mermaid source client-side. The (large) mermaid library is only downloaded when a
- * diagram scrolls near the viewport, so pages without diagrams pay nothing.
+ * diagram scrolls near the viewport, so pages without diagrams pay nothing, and only after the
+ * visitor's first interaction (or a few seconds), so it never blocks the page becoming usable.
  */
 export function MermaidDiagram({ source, title }: { source: string; title: string }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -16,29 +18,34 @@ export function MermaidDiagram({ source, title }: { source: string; title: strin
     const el = ref.current;
     if (!el) return;
     let cancelled = false;
+    let cancelDeferred: (() => void) | undefined;
+    const render = async () => {
+      try {
+        const mermaid = (await import("mermaid")).default;
+        const dark = document.documentElement.classList.contains("dark");
+        mermaid.initialize({
+          startOnLoad: false,
+          theme: dark ? "dark" : "neutral",
+          securityLevel: "strict",
+        });
+        const { svg: rendered } = await mermaid.render(`mermaid-${id}`, source);
+        if (!cancelled) setSvg(rendered);
+      } catch {
+        if (!cancelled) setFailed(true);
+      }
+    };
     const observer = new IntersectionObserver(
-      async ([entry]) => {
+      ([entry]) => {
         if (!entry?.isIntersecting) return;
         observer.disconnect();
-        try {
-          const mermaid = (await import("mermaid")).default;
-          const dark = document.documentElement.classList.contains("dark");
-          mermaid.initialize({
-            startOnLoad: false,
-            theme: dark ? "dark" : "neutral",
-            securityLevel: "strict",
-          });
-          const { svg: rendered } = await mermaid.render(`mermaid-${id}`, source);
-          if (!cancelled) setSvg(rendered);
-        } catch {
-          if (!cancelled) setFailed(true);
-        }
+        cancelDeferred = afterFirstInteraction(() => void render());
       },
       { rootMargin: "200px" },
     );
     observer.observe(el);
     return () => {
       cancelled = true;
+      cancelDeferred?.();
       observer.disconnect();
     };
   }, [id, source]);

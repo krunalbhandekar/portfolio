@@ -25,12 +25,20 @@ export type Settings = {
   availabilityText: string;
   accentColor: string;
   socials: Social[];
-  announcement: { enabled: boolean; text: string; href: string };
+  announcement: {
+    enabled: boolean;
+    text: string;
+    href: string;
+    dismissible: boolean;
+    endsAt: string | null;
+  };
   calendarUrl: string;
   avatar: Media | null;
   logo: Media | null;
   seo: { title: string; description: string; ogImage: Media | null };
   recruiter: RecruiterFaq;
+  /** Per-page SEO overrides for fixed pages (Admin → SEO). */
+  seoPages: SeoOverride[];
   updatedAt?: string;
 };
 
@@ -204,6 +212,8 @@ export type SitemapData = {
   caseStudies: { slug: string; updatedAt: string }[];
   posts: { slug: string; updatedAt: string }[];
   skills: { slug: string; updatedAt: string }[];
+  pages: { key: string; updatedAt: string }[];
+  noindex: string[];
   updatedAt: Record<string, string | null>;
 };
 
@@ -403,3 +413,22 @@ export type SearchItem = {
   href: string;
   keywords: string;
 };
+
+/* ---------------------------------------------------------------- Phase 7 */
+
+export type SeoOverride = { path: string; title: string; description: string; noindex: boolean };
+
+type PageBase = {
+  key: "now" | "uses" | "faq";
+  title: string;
+  intro: string;
+  seo: { title: string; description: string };
+  updatedAt: string;
+};
+export type NowPage = PageBase & { content: string };
+export type UsesPage = PageBase & {
+  sections: { title: string; items: { name: string; description: string; url: string }[] }[];
+};
+export type FaqPage = PageBase & { items: { question: string; answer: string }[] };
+
+export type RedirectRule = { from: string; to: string; statusCode: number };

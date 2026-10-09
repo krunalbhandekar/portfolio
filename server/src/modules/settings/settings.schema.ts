@@ -50,8 +50,16 @@ export const settingsInput = z.object({
     .max(10)
     .default([]),
   announcement: z
-    .object({ enabled: z.boolean().default(false), text: text(160), href })
-    .default({ enabled: false, text: "", href: "" }),
+    .object({
+      enabled: z.boolean().default(false),
+      text: text(160),
+      href,
+      /** Visitors can close it (remembered per announcement text). */
+      dismissible: z.boolean().default(true),
+      /** Hidden automatically after this time. */
+      endsAt: z.union([z.null(), z.coerce.date()]).default(null),
+    })
+    .default({ enabled: false, text: "", href: "", dismissible: true, endsAt: null }),
   calendarUrl: httpUrl,
   logo: nullableMediaRef,
   avatar: nullableMediaRef,

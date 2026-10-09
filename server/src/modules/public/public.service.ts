@@ -17,6 +17,8 @@ import { SiteSettings } from "../settings/settings.model.js";
 import { Skill } from "../skills/skill.model.js";
 import { Testimonial } from "../testimonials/testimonial.model.js";
 import { GithubCache } from "../github/github.model.js";
+import { Page, PAGE_KEYS, type PageKey } from "../pages/page.model.js";
+import { SeoSettings } from "../seo/seo.model.js";
 import { Post } from "../posts/post.model.js";
 import { getLatestPosts } from "../posts/post.public.js";
 
@@ -86,7 +88,27 @@ const PROJECT_CARD = {
 } as const;
 
 export async function getSettings() {
-  return SiteSettings.findOne({ key: "default" }, INTERNAL).lean();
+  const [settings, seo] = await Promise.all([
+    SiteSettings.findOne({ key: "default" }, INTERNAL).lean(),
+    SeoSettings.findOne({ key: "default" }, { pages: 1 }).lean(),
+  ]);
+  if (!settings) return null;
+  // Per-page SEO overrides for fixed pages (Admin → SEO), applied by the site's metadata helper.
+  return { ...settings, seoPages: seo?.pages ?? [] };
+}
+
+/** Now / Uses / FAQ: 404 until the page is switched on in the admin. */
+export async function getPage(key: string) {
+  if (!(PAGE_KEYS as readonly string[]).includes(key)) throw notFound("Page not found");
+  const page = await Page.findOne({ key: key as PageKey, visible: true }, INTERNAL).lean();
+  if (!page) throw notFound("Page not found");
+  return page;
+}
+
+/** Which simple pages are switched on (sitemap, palette, footer). */
+export async function getVisiblePages() {
+  const pages = await Page.find({ visible: true }, { key: 1, updatedAt: 1, _id: 0 }).lean();
+  return pages.map((p) => ({ key: p.key, updatedAt: p.updatedAt }));
 }
 
 export async function getHome() {
@@ -422,6 +444,8 @@ export async function getSitemapData() {
     posts,
     skillPages,
     github,
+    pages,
+    seo,
   ] = await Promise.all([
     Project.find(
       { ...PUBLISHED, "seo.noindex": mongoose.trusted({ $ne: true }) },
@@ -443,12 +467,17 @@ export async function getSitemapData() {
     ).lean<{ slug: string; updatedAt: Date }[]>(),
     Skill.find(PUBLISHED, { slug: 1, updatedAt: 1 }).lean<{ slug: string; updatedAt: Date }[]>(),
     GithubCache.findOne({ key: "default" }, { fetchedAt: 1 }).lean<{ fetchedAt?: Date }>(),
+    getVisiblePages(),
+    SeoSettings.findOne({ key: "default" }, { pages: 1 }).lean(),
   ]);
   return {
     projects: projects.map((p) => ({ slug: p.slug, updatedAt: p.updatedAt })),
     caseStudies: caseStudies.map((c) => ({ slug: c.slug, updatedAt: c.updatedAt })),
     posts: posts.map((p) => ({ slug: p.slug, updatedAt: p.updatedAt })),
     skills: skillPages.map((s) => ({ slug: s.slug, updatedAt: s.updatedAt })),
+    pages,
+    /** Fixed pages marked "noindex" in Admin → SEO (left out of the sitemap). */
+    noindex: (seo?.pages ?? []).filter((p) => p.noindex).map((p) => p.path),
     updatedAt: {
       settings,
       about,

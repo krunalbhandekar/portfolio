@@ -151,7 +151,7 @@ function PinnedRepos() {
                 <span className="w-5 font-mono text-xs text-muted-foreground">{i + 1}.</span>
                 <span className="flex-1 font-mono">{name}</span>
                 {!repos.some((r) => r.name === name) && status.data ? (
-                  <span className="text-xs text-amber-600">not found in last sync</span>
+                  <span className="text-xs text-amber-700 dark:text-amber-400">not found in last sync</span>
                 ) : null}
                 <Button
                   type="button"
@@ -251,6 +251,7 @@ function GithubFields() {
 
 export const githubConfig: SingletonConfig = {
   apiPath: "github/settings",
+  resource: "github",
   title: "GitHub",
   description: "Pinned repositories, contribution graph and open-source PRs, synced daily.",
   defaults: {
