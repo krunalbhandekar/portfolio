@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { httpUrl, nullableDate, nullableMediaRef, requiredText, text } from "../shared/fields.js";
+import { httpUrl, nullableDate, requiredText, text } from "../shared/fields.js";
 
 export const CERTIFICATION_TYPES = [
   "degree",
@@ -16,7 +16,7 @@ export const certificationInput = z.object({
   institution: text(120),
   type: z.enum(CERTIFICATION_TYPES).default("certification"),
   date: nullableDate,
-  certificateImage: nullableMediaRef,
+  /** Link to the certificate or its verification page (no uploads: saves Cloudinary storage). */
   verifyUrl: httpUrl,
   description: text(300),
 });

@@ -7,7 +7,6 @@ import { slugify } from "@/lib/slug";
 import { DateField, SelectField, TagsField, TextField, TextareaField } from "../kit/fields";
 import { FormSection } from "../kit/layout";
 import { ReferenceSelectField } from "../kit/reference-fields";
-import { MediaField } from "../media/media-fields";
 import type { ResourceConfig } from "../resources/types";
 import { CERTIFICATION_TYPES, FEATURE_AREAS, labelFor, RELATIONSHIPS } from "./options";
 import { useSkillSuggestions } from "./use-skill-suggestions";
@@ -220,12 +219,13 @@ function CertificationFields() {
       <SelectField name="type" label="Type" options={CERTIFICATION_TYPES} />
       <TextField name="institution" label="Institution / issuer" />
       <DateField name="date" label="Date" />
-      <TextField name="verifyUrl" label="Verification link" type="url" />
       <TextareaField name="description" label="Description" maxLength={300} wide />
-      <MediaField
-        name="certificateImage"
-        label="Certificate image"
-        folder="portfolio/certificates"
+      <TextField
+        name="verifyUrl"
+        label="Certificate link"
+        type="url"
+        placeholder="https://www.coursera.org/account/accomplishments/…"
+        description="Public link to the certificate or its verification page (Coursera, Udemy, Credly, Google Drive…). Shown as “View certificate” on the About page."
         wide
       />
     </FormSection>
@@ -254,7 +254,6 @@ export const certificationsConfig: ResourceConfig = {
     institution: "",
     type: "certification",
     date: null,
-    certificateImage: null,
     verifyUrl: "",
     description: "",
   },

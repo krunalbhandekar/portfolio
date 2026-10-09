@@ -276,7 +276,6 @@ export type Certification = {
   institution: string;
   type: string;
   date: string | null;
-  certificateImage: Media | null;
   verifyUrl: string;
   description: string;
 };

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ExternalLink } from "lucide-react";
 import { JsonLd } from "@/components/shared/json-ld";
 import { RichText } from "@/components/shared/rich-text";
 import { SectionHeader } from "@/components/shared/section-header";
@@ -10,6 +10,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { getAbout, getAchievements, getCertifications, getSettings } from "@/lib/data/public";
 import { excerpt, formatMonth } from "@/lib/format";
 import { breadcrumbJsonLd, pageMetadata, personJsonLd } from "@/lib/seo";
+import { cn } from "@/lib/utils";
 
 export async function generateMetadata(): Promise<Metadata> {
   const [settings, about] = await Promise.all([getSettings(), getAbout()]);
@@ -181,16 +182,7 @@ export default async function AboutPage() {
           <SectionHeader index="05" eyebrow="Learning" title="Certifications & courses" />
           <ul className="grid gap-4 sm:grid-cols-2">
             {certifications.map((c) => (
-              <li key={c._id} className="flex gap-4 rounded-2xl border bg-card p-5">
-                {c.certificateImage ? (
-                  <Image
-                    src={c.certificateImage.url}
-                    alt={c.certificateImage.alt}
-                    width={96}
-                    height={68}
-                    className="h-[68px] w-24 shrink-0 rounded-md border bg-white object-cover"
-                  />
-                ) : null}
+              <li key={c._id} className="flex rounded-2xl border bg-card p-5">
                 <div className="flex min-w-0 flex-col gap-1">
                   <p className="font-mono text-xs text-muted-foreground capitalize">
                     {c.type}
@@ -208,9 +200,13 @@ export default async function AboutPage() {
                       href={c.verifyUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="mt-1 w-fit text-xs text-brand-text hover:underline"
+                      className={cn(
+                        buttonVariants({ variant: "outline", size: "sm" }),
+                        "mt-2 w-fit",
+                      )}
                     >
-                      Verify credential<span className="sr-only"> for {c.title}</span> ↗
+                      View certificate<span className="sr-only"> for {c.title}</span>
+                      <ExternalLink aria-hidden="true" />
                     </a>
                   ) : null}
                 </div>
