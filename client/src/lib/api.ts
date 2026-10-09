@@ -6,7 +6,8 @@
  * - On an expired access token, refreshes once (shared across concurrent calls) and retries.
  */
 
-export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "/api/v1";
+/** Always the site's own /api/v1 (Vercel proxies it to Render), so cookies stay first-party. */
+export const API_BASE = "/api/v1";
 
 const CSRF_HEADER = { "X-Requested-With": "portfolio" } as const;
 const TIMEOUT_MS = 60_000;

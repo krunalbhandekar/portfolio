@@ -43,10 +43,11 @@ export const newTokenFamily = () => randomUUID();
 export const hashRefreshToken = (token: string) =>
   createHmac("sha256", env.JWT_REFRESH_SECRET).update(token).digest("hex");
 
+// Host-only cookies (no `domain`): the browser reaches the API through the site's own
+// /api/v1 proxy, so the cookies belong to the site's domain and nothing else.
 const baseCookie: CookieOptions = {
   secure: isProduction,
   sameSite: "lax",
-  ...(env.COOKIE_DOMAIN ? { domain: env.COOKIE_DOMAIN } : {}),
 };
 
 // The refresh cookie is only sent to the auth endpoints, never to the rest of the API.

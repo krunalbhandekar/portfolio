@@ -396,8 +396,7 @@ The refresh endpoint rotates tokens; logout clears cookies and revokes the refre
 
 `*.vercel.app` and `*.onrender.com` are different sites, and browsers block third-party cookies between them. Use one of these:
 
-- **Implemented (default):** the browser calls same-origin `/api/v1/*`, and a Next.js rewrite on Vercel proxies it to the Render URL (`API_URL`). Cookies are host-only, first-party on the site's domain, and work with or without a custom domain. Leave `COOKIE_DOMAIN` unset.
-- **Optional later:** with a custom domain for both (e.g. `krunalbhandekar.dev` + `api.krunalbhandekar.dev`), the browser can call the API directly: set `NEXT_PUBLIC_API_URL` on the client and `COOKIE_DOMAIN=.krunalbhandekar.dev` on the server.
+- **Implemented:** the browser calls same-origin `/api/v1/*`, and a Next.js rewrite on Vercel proxies it to the Render URL (`API_URL`). Cookies are host-only, first-party on the site's domain, and work with or without a custom domain. (The optional direct-call mode with `COOKIE_DOMAIN` / `NEXT_PUBLIC_API_URL` was removed as unused.)
 
 Cookies set by the API: `pf_at` (access JWT, httpOnly, path `/`, 15 min), `pf_rt` (refresh token, httpOnly, path `/api/v1/auth`, 7 days) and `pf_session=1` (non-secret, JS-readable hint used only for the footer "Admin"/"Dashboard" link).
 
@@ -420,7 +419,6 @@ PORT=10000
 MONGODB_URI=
 CLIENT_URL=https://krunalbhandekar.dev
 TRUST_PROXY_HOPS=1
-COOKIE_DOMAIN=               # empty with the /api/v1 proxy (default)
 GOOGLE_CLIENT_ID=
 ADMIN_EMAIL=krunalbhandekar10@gmail.com
 JWT_ACCESS_SECRET=
@@ -438,7 +436,6 @@ SENTRY_DSN=
 ```
 NEXT_PUBLIC_SITE_URL=https://krunalbhandekar.dev
 API_URL=https://<render-service>.onrender.com   # server-only; /api/v1 proxy target
-# NEXT_PUBLIC_API_URL=https://api.krunalbhandekar.dev/api/v1   # only for direct mode
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=
 REVALIDATE_SECRET=
@@ -594,7 +591,7 @@ Image fields store a **media reference** (`{ mediaId, publicId, url, alt, width,
 
 ## 10. API Design
 
-Base: `https://api.<domain>/api/v1`
+Base: `/api/v1` on the site (proxied by Vercel to the Render service)
 
 ### Public (read-only, `published` content only)
 
@@ -982,7 +979,7 @@ Configured in the cron-job.org dashboard. Each job sends a `POST` with the `x-jo
 - [x] Models: `admins`, `refreshTokens`, `auditLogs`
 - [x] Auth module: `POST /auth/google`, `POST /auth/refresh`, `POST /auth/logout`, `GET /auth/me`
   - verify Google ID token (audience), `email_verified`, **email must equal `ADMIN_EMAIL` (krunalbhandekar10@gmail.com)** else 403
-  - access JWT (15 min) + rotating hashed refresh token (7 days) in httpOnly Secure SameSite=Lax cookies with `COOKIE_DOMAIN`
+  - access JWT (15 min) + rotating hashed refresh token (7 days) in host-only httpOnly Secure SameSite=Lax cookies
   - log every login attempt (success / rejected) to `auditLogs`
 - [x] `requireAdmin` middleware + CSRF custom-header check on state-changing admin routes
 - [x] Revalidation service: `revalidate(paths[], tags[])` → `POST {CLIENT_URL}/api/revalidate` (used from Phase 3 on)

@@ -15,8 +15,6 @@ const envSchema = z.object({
   MONGODB_URI: z
     .string()
     .regex(/^mongodb(\+srv)?:\/\//, "Expected a mongodb:// or mongodb+srv:// URI"),
-  /** Leave unset when the client proxies /api/v1 (cookies stay host-only on the client domain). */
-  COOKIE_DOMAIN: laterPhase,
   GOOGLE_CLIENT_ID: z.string().endsWith(".apps.googleusercontent.com"),
   /** The only account allowed into the admin; also receives notification emails. */
   ADMIN_EMAIL: z.email().default("krunalbhandekar10@gmail.com"),
