@@ -207,7 +207,6 @@ export function crudRouter(config: CrudConfig) {
     })
     .delete("/:id", validate({ params: idParams }), async (req, res) => {
       const doc = await findOr404(req.params.id as string);
-      await snapshot(req, doc.toObject() as Doc, "delete");
       await doc.deleteOne();
       await afterWrite(req, "delete", doc.toObject());
       sendSuccess(res, { deleted: true });

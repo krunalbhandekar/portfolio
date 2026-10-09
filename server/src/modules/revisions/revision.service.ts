@@ -48,31 +48,6 @@ export async function listRevisions(resource: string, documentId: string) {
     .lean();
 }
 
-/** Deleted items of a collection that can still be restored (newest first). */
-export async function listDeleted(resource: string) {
-  const entry = registry.get(resource);
-  if (!entry || entry.kind !== "collection") throw notFound("Unknown resource");
-  const deletions = await Revision.find({ resource, action: "delete" }, SUMMARY)
-    .sort({ createdAt: -1 })
-    .limit(100)
-    .lean();
-  if (!deletions.length) return [];
-  const alive = new Set(
-    (
-      await entry.model
-        .find({ _id: mongoose.trusted({ $in: deletions.map((d) => d.documentId) }) }, { _id: 1 })
-        .lean<{ _id: Types.ObjectId }[]>()
-    ).map((d) => String(d._id)),
-  );
-  const seen = new Set<string>();
-  return deletions.filter((d) => {
-    const id = String(d.documentId);
-    if (alive.has(id) || seen.has(id)) return false;
-    seen.add(id);
-    return true;
-  });
-}
-
 export async function getRevision(id: string) {
   if (!Types.ObjectId.isValid(id)) throw badRequest("Invalid revision id");
   const revision = await Revision.findById(id).lean();

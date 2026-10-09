@@ -81,7 +81,6 @@ Full, commented lists: [`server/.env.example`](server/.env.example) and [`client
 There are no scheduled backups. Mistakes are undone inside the admin:
 
 - **History** button in every editor: the last 30 versions of each item, with a diff and one-click restore (the restore itself is undoable).
-- **Recently deleted** on every list: brings a deleted item back exactly as it was (same id and URL).
 - **Audit log**: who changed what and when.
 
 These cover content edits, not the database itself. MongoDB Atlas M0 has no automatic backups, so if you ever want a full copy, export it yourself with `mongodump "<MONGODB_URI>"` (MongoDB Database Tools) from time to time.

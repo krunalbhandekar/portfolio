@@ -12,12 +12,7 @@ import { recordAudit } from "../audit/audit.service.js";
 import { Redirect } from "../redirects/redirect.model.js";
 import { redirectInput } from "../redirects/redirect.schema.js";
 import { redirectFilter } from "../redirects/redirect.service.js";
-import {
-  getRevision,
-  listDeleted,
-  listRevisions,
-  restoreRevision,
-} from "../revisions/revision.service.js";
+import { getRevision, listRevisions, restoreRevision } from "../revisions/revision.service.js";
 import { objectId } from "../shared/fields.js";
 
 const idParams = z.object({ id: objectId });
@@ -44,13 +39,6 @@ export const opsRoutes = Router()
         documentId: string;
       };
       sendSuccess(res, await listRevisions(resource, documentId));
-    },
-  )
-  .get(
-    "/revisions/deleted",
-    validate({ query: z.object({ resource: z.string().min(1).max(60) }) }),
-    async (req, res) => {
-      sendSuccess(res, await listDeleted((req.validatedQuery as { resource: string }).resource));
     },
   )
   .get("/revisions/:id", validate({ params: idParams }), async (req, res) => {
