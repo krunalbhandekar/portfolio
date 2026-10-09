@@ -369,7 +369,7 @@ Route: `/admin` (client-rendered, `noindex, nofollow`, excluded from the sitemap
 - **Only Google sign-in.** No password and no sign-up form.
 - **Single admin:** `ADMIN_EMAIL=krunalbhandekar10@gmail.com`. Any other Google account is rejected with 403, even after Google authentication succeeds.
 - Verify `email_verified === true` and the token's `aud === GOOGLE_CLIENT_ID`.
-- The admin record is seeded or upserted on first successful login. No other admin can ever be created.
+- The admin record is created (upserted) on the first successful login. No other admin can ever be created.
 
 ### 6.2 Flow
 
@@ -757,7 +757,6 @@ portfolio/
 │   │   ├── utils/
 │   │   ├── app.ts
 │   │   └── server.ts
-│   ├── scripts/                     # seed admin & initial content
 │   ├── .env.example
 │   ├── tsconfig.json
 │   └── package.json
@@ -1031,7 +1030,7 @@ Configured in the cron-job.org dashboard. Each job sends a `POST` with the `x-jo
 - [x] Models + admin routes: `siteSettings` (singleton), `about` (singleton), `experiences`, `projects`, `skills`, `capabilities`, `resumes`
 - [x] Slug generation + uniqueness check; text index on `projects`
 - [x] Every write triggers revalidation of affected paths
-- [x] Seed script (`server/scripts/seed.ts`): admin + starter settings
+- [x] Seed script (`server/scripts/seed.ts`): admin + starter settings — *removed after launch: sign-in creates the admin and singletons start from defaults*
 
 **Client — admin**
 - [x] Reusable admin kit: DataTable (search, sort, pagination), form layout, field components (text, textarea, select, tags, date, switch, URL, repeater/array field, rich text with Tiptap), drag-and-drop reorder, confirm dialog, toast, unsaved-changes guard
@@ -1055,7 +1054,7 @@ Configured in the cron-job.org dashboard. Each job sends a `POST` with the `x-jo
 - Homepage content is its own `homepage` singleton (hero, CTAs, stats, bento, expertise, section order/visibility, featured projects), separate from `siteSettings`.
 - Admin URLs: singletons at `/admin/settings|homepage|about`, collections via `/admin/[resource]` and `/admin/[resource]/[id]` (`new` to create), registered in `components/admin/modules/registry.ts`. Capabilities has its own sidebar entry.
 - Revalidation tags: `settings`, `homepage`, `about`, `experiences`, `projects`, `project:<slug>`, `skills`, `skill:<slug>`, `resumes`. Phase 4 fetchers must use the same tags.
-- `npm run seed` (server) creates the admin, settings, homepage, about and 18 starter skills; it never overwrites existing data.
+- `npm run seed` created the admin, settings, homepage, about and 18 starter skills for the first launch. It was removed once production was set up (not needed: sign-in creates the admin).
 - `shadcn` moved to devDependencies (CLI only; its transitive deps had advisories). `sanitize-html` pinned to a patched release.
 
 **Not in this phase:** public pages consuming the data, case studies, blog, drafts preview.

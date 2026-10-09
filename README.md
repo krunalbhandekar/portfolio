@@ -29,7 +29,6 @@ Requirements: Node.js 20.19+ and npm; MongoDB (an Atlas URI, or `mongod` install
 cd server
 cp .env.example .env        # fill MONGODB_URI, GOOGLE_CLIENT_ID, CLOUDINARY_URL and the secrets
 npm install
-npm run seed                # once: admin, site settings, homepage, about, starter skills (idempotent)
 npm run dev
 
 # 2. Site → http://localhost:3000 (proxies /api/v1/* to API_URL, default http://localhost:5050)
@@ -74,7 +73,7 @@ Full, commented lists: [`server/.env.example`](server/.env.example) and [`client
 **Render (server)**: Web Service, Node runtime, Root Directory `server`, region Singapore.
 
 - Build: `npm ci --include=dev && npm run build` · Start: `npm start` · Health check: `/api/v1/health`
-- Seed production once from your machine: `MONGODB_URI=<atlas-uri> npm run seed` (in `server/`).
+- No seeding needed: your first Google sign-in creates the admin account, and Site Settings / Homepage / About start from defaults until you save them.
 - The free plan sleeps after ~15 idle minutes (30–60 s to wake). The public site is unaffected (static on Vercel); the admin shows "Waking up the server…" and retries. Optional keep-alive: ping `/api/v1/health` every 14 minutes (UptimeRobot or cron-job.org).
 
 **Google OAuth**: authorized JavaScript origins = the production URL (and `http://localhost:3000`). Publishing status **In production**, so visitors can leave testimonials.
@@ -109,7 +108,7 @@ Check a job: run it once from cron-job.org and look for `"success":true` in the 
 
 **Test-restore into a dev database** (do this once, and after big changes):
 
-1. Run the API locally against a *separate* database (`MONGODB_URI=…/portfolio_restore_test` in `server/.env`), then `npm run seed` and `npm run dev`.
+1. Run the API locally against a *separate* database (`MONGODB_URI=…/portfolio_restore_test` in `server/.env`), then `npm run dev` (sign in once to create the admin account).
 2. Start the client locally, sign in, and import the downloaded backup (Replace → Dry run → Import).
 3. Browse the local site and compare it with production. Drop the test database afterwards.
 
@@ -131,4 +130,3 @@ Check a job: run it once from cron-job.org and look for `"success":true` in the 
 | `npm start` | Run the production build |
 | `npm run lint` / `npm run typecheck` | Checks only |
 | `npm run format` | Prettier |
-| `npm run seed` (server) | Create the admin and starter content (idempotent) |
