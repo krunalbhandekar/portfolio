@@ -31,7 +31,6 @@ const PAGES: SearchItem[] = [
   ["Experience", "/experience"],
   ["Skills", "/skills"],
   ["About", "/about"],
-  ["GitHub activity", "/github"],
   ["Resume", "/resume"],
   ["Hire me — recruiter quick view", "/hire"],
   ["Contact", "/contact"],

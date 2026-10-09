@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, BadgeCheck, MapPin } from "lucide-react";
 import { PostCard } from "@/components/blog/post-card";
-import { ContributionGraph } from "@/components/github/contribution-graph";
 import { CaseStudyCard } from "@/components/case-studies/case-study-card";
 import { Reveal } from "@/components/motion/reveal";
 import { ProjectCard } from "@/components/projects/project-card";
@@ -15,7 +14,7 @@ import { TechChip } from "@/components/shared/tech-chip";
 import { TestimonialAvatar } from "@/components/testimonials/testimonial-avatar";
 import { Timeline, TimelineItem } from "@/components/shared/timeline";
 import { buttonVariants } from "@/components/ui/button";
-import type { GithubData, HomeData, Settings } from "@/lib/data/types";
+import type { HomeData, Settings } from "@/lib/data/types";
 import { excerpt, formatPeriod } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { TestimonialsCarousel } from "./testimonials-carousel";
@@ -25,8 +24,6 @@ export type SectionProps = {
   settings: Settings;
   names: Map<string, string>;
   index: string;
-  /** Cached GitHub data (null until the first sync); powers the "github" bento card. */
-  github: GithubData | null;
 };
 
 const ctaVariant = { primary: "default", outline: "outline", ghost: "ghost" } as const;
@@ -121,7 +118,7 @@ export function StatsSection({ home }: SectionProps) {
 
 const sizeClass = { sm: "", md: "sm:col-span-2", lg: "sm:col-span-2 lg:row-span-2" } as const;
 
-export function BentoSection({ home, settings, names, github: githubData }: SectionProps) {
+export function BentoSection({ home, settings, names }: SectionProps) {
   const cards = home.homepage.bento ?? [];
   if (!cards.length) return null;
   const github = settings.socials.find((s) => s.platform === "github");
@@ -169,22 +166,7 @@ export function BentoSection({ home, settings, names, github: githubData }: Sect
                   {card.body ? (
                     <p className="mt-2 text-sm text-muted-foreground">{card.body}</p>
                   ) : null}
-                  {githubData?.contributions ? (
-                    <div className="mt-3 flex flex-col gap-1.5">
-                      <ContributionGraph contributions={githubData.contributions} weeks={17} />
-                      <p className="font-mono text-xs text-muted-foreground">
-                        {githubData.contributions.total} contributions in the last year
-                      </p>
-                    </div>
-                  ) : null}
-                  {githubData ? (
-                    <Link
-                      href="/github"
-                      className="mt-3 inline-flex items-center gap-1 text-sm text-brand-text hover:underline"
-                    >
-                      GitHub activity <ArrowRight className="size-3.5" aria-hidden="true" />
-                    </Link>
-                  ) : github || card.href ? (
+                  {github || card.href ? (
                     <a
                       href={card.href || github!.url}
                       target="_blank"

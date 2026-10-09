@@ -85,12 +85,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly" as const,
       priority: 0.7,
     })),
-    {
-      url: absoluteUrl("/github"),
-      lastModified: at(data.updatedAt.github),
-      changeFrequency: "weekly",
-      priority: 0.5,
-    },
     { url: absoluteUrl("/hire"), changeFrequency: "monthly", priority: 0.6 },
     { url: absoluteUrl("/resume"), changeFrequency: "monthly", priority: 0.6 },
     { url: absoluteUrl("/contact"), changeFrequency: "yearly", priority: 0.5 },

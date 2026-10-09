@@ -7,7 +7,6 @@ import type { z } from "zod";
 import { getAnalytics } from "../analytics/analytics.service.js";
 import { analyticsQuery } from "../analytics/event.schema.js";
 import { contentRoutes } from "../content.routes.js";
-import { githubRoutes } from "../github/github.routes.js";
 import { messagesRoutes } from "../messages/messages.routes.js";
 import { opsRoutes } from "../ops/ops.routes.js";
 import { getDashboard } from "./dashboard.service.js";
@@ -26,7 +25,6 @@ export const adminRoutes = Router()
     const { days } = req.validatedQuery as z.infer<typeof analyticsQuery>;
     sendSuccess(res, await getAnalytics(days));
   })
-  .use("/github", githubRoutes)
   .use("/messages", messagesRoutes)
   .use(opsRoutes)
   .use("/media", mediaRoutes)

@@ -63,7 +63,7 @@ export const BENTO_KINDS = opts([
   ["currently-building", "Currently building"],
   ["location", "Location"],
   ["stack", "Tech stack"],
-  ["github", "GitHub activity"],
+  ["github", "GitHub link"],
   ["custom", "Custom"],
 ]);
 export const BENTO_SIZES = opts([

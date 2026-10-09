@@ -173,9 +173,7 @@ export function DashboardOverview() {
                 const linkable =
                   e.entityId &&
                   verb !== "delete" &&
-                  !["settings", "homepage", "about", "media", "messages", "github"].includes(
-                    resource,
-                  );
+                  !["settings", "homepage", "about", "media", "messages"].includes(resource);
                 const text = (
                   <>
                     <span className="text-muted-foreground">{VERBS[verb] ?? verb}</span>{" "}

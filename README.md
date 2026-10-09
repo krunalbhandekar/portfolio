@@ -61,7 +61,6 @@ Full, commented lists: [`server/.env.example`](server/.env.example) and [`client
 | `CLOUDINARY_URL` | yes | `cloudinary://<key>:<secret>@<cloud>` (media, usage widget, backups) |
 | `JOBS_SECRET` | for cron jobs | Header `x-jobs-secret` on `/api/v1/jobs/*` |
 | `RESEND_API_KEY` | optional | Contact/testimonial email notifications |
-| `GITHUB_TOKEN` | optional | Fine-grained, public repos read-only; needed for the contribution graph |
 
 **Client (Vercel)**: `NEXT_PUBLIC_SITE_URL`, `API_URL` (Render URL, no trailing slash, no `/api/v1`), `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `REVALIDATE_SECRET`.
 
@@ -86,7 +85,6 @@ Render's free plan has no cron, so [cron-job.org](https://cron-job.org) triggers
 | Job | URL | Schedule |
 |---|---|---|
 | Publish scheduled content | `https://<render-url>/api/v1/jobs/publish-scheduled` | every 15 minutes |
-| GitHub sync | `https://<render-url>/api/v1/jobs/github-sync` | daily (e.g. 03:00) |
 | Backup | `https://<render-url>/api/v1/jobs/backup` | nightly (e.g. 02:00) |
 | Keep-alive (optional) | `GET https://<render-url>/api/v1/health` | every 14 minutes |
 

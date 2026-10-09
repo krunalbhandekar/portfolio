@@ -9,7 +9,6 @@ import type {
   RedirectRule,
   UsesPage,
   FeedPost,
-  GithubData,
   Post,
   PostCard,
   PostList,
@@ -491,19 +490,6 @@ export async function getSkill(slug: string): Promise<SkillDetail | null> {
     features: arr(skill.features),
     experiences: arr(skill.experiences),
     posts: arr(skill.posts).map(normalizePostCard),
-  };
-}
-
-export async function getGithub(): Promise<GithubData | null> {
-  "use cache";
-  cacheTag("github");
-  const data = settle(await fetchPublic<GithubData>("/github"), null);
-  if (!data) return null;
-  return {
-    ...data,
-    pinned: arr(data.pinned).map((r) => ({ ...r, topics: arr(r.topics) })),
-    languages: arr(data.languages),
-    pullRequests: arr(data.pullRequests),
   };
 }
 

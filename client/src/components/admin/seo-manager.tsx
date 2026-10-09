@@ -30,7 +30,6 @@ const SEO_PAGES = [
   ["/experience", "Experience"],
   ["/skills", "Skills"],
   ["/about", "About"],
-  ["/github", "GitHub"],
   ["/hire", "Hire me"],
   ["/resume", "Resume"],
   ["/contact", "Contact"],

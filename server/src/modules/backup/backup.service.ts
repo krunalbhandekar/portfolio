@@ -33,7 +33,6 @@ const ALL_TAGS = [
   "certifications",
   "resumes",
   "posts",
-  "github",
   "redirects",
   "pages",
   "seo",

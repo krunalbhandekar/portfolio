@@ -11,7 +11,6 @@ import { sendSuccess } from "../../utils/response.js";
 import { SLUG_PATTERN } from "../../utils/slug.js";
 import { recordEvent, recordResumeDownload } from "../analytics/analytics.service.js";
 import { eventInput } from "../analytics/event.schema.js";
-import { getPublicGithub } from "../github/github.service.js";
 import { contactSchema } from "../messages/contact.schema.js";
 import { submitContact } from "../messages/contact.service.js";
 import {
@@ -129,7 +128,6 @@ export const publicRoutes = Router()
   .get("/skills/:slug", validate({ params: slugParams }), async (req, res) =>
     sendSuccess(res, await getSkill(req.params.slug as string)),
   )
-  .get("/github", async (_req, res) => sendSuccess(res, await getPublicGithub()))
   .get("/search-index", async (_req, res) => sendSuccess(res, await getSearchIndex()))
   .get("/search", searchLimiter, validate({ query: searchQuery }), async (req, res) =>
     sendSuccess(res, await search((req.validatedQuery as z.infer<typeof searchQuery>).q)),

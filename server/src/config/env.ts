@@ -32,8 +32,7 @@ const envSchema = z.object({
   // Phase 4 — contact & monitoring
   RESEND_API_KEY: laterPhase,
 
-  // Phase 6 — GitHub & scheduled jobs
-  GITHUB_TOKEN: laterPhase,
+  // Phase 6 — scheduled jobs (cron-job.org)
   JOBS_SECRET: laterPhase,
 });
 

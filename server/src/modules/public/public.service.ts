@@ -16,7 +16,6 @@ import { Resume } from "../resumes/resume.model.js";
 import { SiteSettings } from "../settings/settings.model.js";
 import { Skill } from "../skills/skill.model.js";
 import { Testimonial } from "../testimonials/testimonial.model.js";
-import { GithubCache } from "../github/github.model.js";
 import { Page, PAGE_KEYS, type PageKey } from "../pages/page.model.js";
 import { SeoSettings } from "../seo/seo.model.js";
 import { Post } from "../posts/post.model.js";
@@ -443,7 +442,6 @@ export async function getSitemapData() {
     built,
     posts,
     skillPages,
-    github,
     pages,
     seo,
   ] = await Promise.all([
@@ -466,7 +464,6 @@ export async function getSitemapData() {
       { slug: 1, updatedAt: 1 },
     ).lean<{ slug: string; updatedAt: Date }[]>(),
     Skill.find(PUBLISHED, { slug: 1, updatedAt: 1 }).lean<{ slug: string; updatedAt: Date }[]>(),
-    GithubCache.findOne({ key: "default" }, { fetchedAt: 1 }).lean<{ fetchedAt?: Date }>(),
     getVisiblePages(),
     SeoSettings.findOne({ key: "default" }, { pages: 1 }).lean(),
   ]);
@@ -489,7 +486,6 @@ export async function getSitemapData() {
         (latestDate, p) => (!latestDate || p.updatedAt > latestDate ? p.updatedAt : latestDate),
         null,
       ),
-      github: github?.fetchedAt ?? null,
     },
   };
 }

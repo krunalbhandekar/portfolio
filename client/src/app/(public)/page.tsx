@@ -13,7 +13,7 @@ import {
   type SectionProps,
 } from "@/components/home/home-sections";
 import { JsonLd } from "@/components/shared/json-ld";
-import { getGithub, getHome, getSettings, skillNames } from "@/lib/data/public";
+import { getHome, getSettings, skillNames } from "@/lib/data/public";
 import type { HomepageSectionKey } from "@/lib/data/types";
 import { pageMetadata, personJsonLd, SITE_URL } from "@/lib/seo";
 
@@ -52,7 +52,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
-  const [settings, home, github] = await Promise.all([getSettings(), getHome(), getGithub()]);
+  const [settings, home] = await Promise.all([getSettings(), getHome()]);
   const names = skillNames(home.skills);
   const order = home.homepage.sections.length
     ? home.homepage.sections.filter((s) => s.visible).map((s) => s.key)
@@ -81,16 +81,7 @@ export default async function Home() {
         const Section = SECTIONS[key];
         if (!Section) return null;
         const index = key === "hero" ? "" : String(++n).padStart(2, "0");
-        return (
-          <Section
-            key={key}
-            home={home}
-            settings={settings}
-            names={names}
-            index={index}
-            github={github}
-          />
-        );
+        return <Section key={key} home={home} settings={settings} names={names} index={index} />;
       })}
     </>
   );

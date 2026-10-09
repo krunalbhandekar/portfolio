@@ -12,7 +12,6 @@ export const SEO_PAGES = [
   "/experience",
   "/skills",
   "/about",
-  "/github",
   "/hire",
   "/resume",
   "/contact",

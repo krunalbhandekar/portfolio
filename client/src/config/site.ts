@@ -33,7 +33,6 @@ export const footerResources = [
   { label: "Resume", href: "/resume" },
   { label: "Skills", href: "/skills" },
   { label: "What I Built", href: "/built" },
-  { label: "GitHub", href: "/github" },
   { label: "Hire me", href: "/hire" },
   { label: "RSS", href: "/rss.xml" },
   { label: "Sitemap", href: "/sitemap.xml" },

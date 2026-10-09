@@ -365,47 +365,6 @@ export type SkillDetail = {
   posts: PostCard[];
 };
 
-export type GithubRepo = {
-  name: string;
-  fullName: string;
-  description: string;
-  htmlUrl: string;
-  homepage: string;
-  stars: number;
-  forks: number;
-  language: string;
-  topics: string[];
-  pushedAt: string;
-};
-
-export type GithubData = {
-  username: string;
-  profile: {
-    name: string;
-    avatarUrl: string;
-    htmlUrl: string;
-    bio: string;
-    publicRepos: number;
-    followers: number;
-  };
-  pinned: GithubRepo[];
-  languages: { name: string; bytes: number; percent: number; color: string }[];
-  contributions: {
-    total: number;
-    weeks: { days: { date: string; count: number; level: number }[] }[];
-  } | null;
-  pullRequests: {
-    title: string;
-    url: string;
-    repo: string;
-    repoUrl: string;
-    merged: boolean;
-    createdAt: string;
-  }[];
-  totals: { repos: number; stars: number; followers: number };
-  fetchedAt: string;
-};
-
 export type SearchItem = {
   type: "project" | "case-study" | "skill" | "post" | "engineering" | "page";
   title: string;
