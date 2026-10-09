@@ -20,6 +20,7 @@ const envSchema = z.object({
   /** Leave unset when the client proxies /api/v1 (cookies stay host-only on the client domain). */
   COOKIE_DOMAIN: laterPhase,
   GOOGLE_CLIENT_ID: z.string().endsWith(".apps.googleusercontent.com"),
+  /** The only account allowed into the admin; also receives notification emails. */
   ADMIN_EMAIL: z.email().default("krunalbhandekar10@gmail.com"),
   JWT_ACCESS_SECRET: secret,
   /** HMAC key used to hash refresh tokens before they are stored. */
@@ -39,7 +40,6 @@ const envSchema = z.object({
   /** Sender for notification emails. onboarding@resend.dev works without a verified domain,
    *  but can only deliver to the Resend account owner's address. */
   RESEND_FROM: z.string().default("Portfolio <onboarding@resend.dev>"),
-  CONTACT_NOTIFY_EMAIL: z.email().default("krunalbhandekar10@gmail.com"),
   SENTRY_DSN: laterPhase,
 
   // Phase 6 — GitHub & scheduled jobs

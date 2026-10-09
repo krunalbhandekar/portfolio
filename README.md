@@ -55,7 +55,7 @@ Full, commented lists: [`server/.env.example`](server/.env.example) and [`client
 | `CLIENT_URL` | yes | The site's URL (CORS, CSRF origin check, revalidation calls) |
 | `MONGODB_URI` | yes | Atlas connection string (least-privilege user) |
 | `GOOGLE_CLIENT_ID` | yes | Same value as the client's `NEXT_PUBLIC_GOOGLE_CLIENT_ID` |
-| `ADMIN_EMAIL` | yes | The only account allowed into the admin |
+| `ADMIN_EMAIL` | yes | The only account allowed into the admin; also receives contact/testimonial notification emails |
 | `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET` | yes | `openssl rand -hex 32` each |
 | `REVALIDATE_SECRET` | yes | **Must equal the client's.** Also authorises Draft Mode previews |
 | `CLOUDINARY_URL` | yes | `cloudinary://<key>:<secret>@<cloud>` (media, usage widget, backups) |

@@ -430,7 +430,6 @@ REVALIDATE_SECRET=
 JOBS_SECRET=
 CLOUDINARY_URL=cloudinary://<api_key>:<api_secret>@<cloud_name>
 RESEND_API_KEY=
-CONTACT_NOTIFY_EMAIL=krunalbhandekar10@gmail.com
 GITHUB_TOKEN=
 SENTRY_DSN=
 ```
@@ -1068,7 +1067,7 @@ Configured in the cron-job.org dashboard. Each job sends a `POST` with the `x-jo
 
 **Server**
 - [x] Public routes: `GET /settings`, `/home`, `/about`, `/experiences`, `/projects` (filters: category, tech, type, q, featured), `/projects/:slug`, `/skills`, `/resume/:id?/download` (redirect to Cloudinary), `/sitemap-data`
-- [x] Contact module: `POST /contact` with Zod, honeypot, rate limit; save to `messages`; email to `CONTACT_NOTIFY_EMAIL` via Resend
+- [x] Contact module: `POST /contact` with Zod, honeypot, rate limit; save to `messages`; email to `ADMIN_EMAIL` via Resend (merged from the former `CONTACT_NOTIFY_EMAIL`)
 - [x] Indexes from [9](#indexes) for these collections
 
 **Client — public**

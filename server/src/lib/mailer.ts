@@ -4,7 +4,7 @@ import { logger } from "./logger.js";
 type AdminEmail = { subject: string; text: string; replyTo?: string };
 
 /**
- * Emails the site owner (`CONTACT_NOTIFY_EMAIL`) via Resend's HTTP API. Never throws: callers
+ * Emails the site owner (`ADMIN_EMAIL`) via Resend's HTTP API. Never throws: callers
  * have already stored whatever triggered the email. Returns whether it was sent.
  */
 export async function sendAdminEmail({ subject, text, replyTo }: AdminEmail) {
@@ -21,7 +21,7 @@ export async function sendAdminEmail({ subject, text, replyTo }: AdminEmail) {
       },
       body: JSON.stringify({
         from: env.RESEND_FROM,
-        to: [env.CONTACT_NOTIFY_EMAIL],
+        to: [env.ADMIN_EMAIL],
         ...(replyTo ? { reply_to: replyTo } : {}),
         subject,
         text,
