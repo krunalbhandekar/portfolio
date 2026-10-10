@@ -37,10 +37,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fcfcfc" },
-    { media: "(prefers-color-scheme: dark)", color: "#0a0a0a" },
-  ],
+  // The site is dark by default (light only by choice), so the browser UI matches dark.
+  themeColor: "#0a0a0a",
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {

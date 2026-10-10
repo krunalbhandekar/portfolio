@@ -1,33 +1,30 @@
 "use client";
 
-import { Monitor, Moon, Sun } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { setTheme, useTheme, type Theme } from "@/hooks/use-theme";
-
-const order: Theme[] = ["system", "light", "dark"];
-
-const options = [
-  { value: "system", label: "System", icon: Monitor },
-  { value: "light", label: "Light", icon: Sun },
-  { value: "dark", label: "Dark", icon: Moon },
-] as const;
+import { setTheme, useTheme } from "@/hooks/use-theme";
 
 /**
- * Cycles System → Light → Dark. The visible icon (and accessible name) is chosen by CSS
- * from `html[data-theme-pref]`, so it is correct before hydration with no mismatch.
+ * Switches between dark (default) and light. The icon shows the theme you'd switch *to*; it
+ * is chosen by CSS from `html[data-theme-pref]`, so it's correct before hydration.
  */
 export function ThemeToggle() {
   const { theme } = useTheme();
-  const next = order[(order.indexOf(theme) + 1) % order.length]!;
-
   return (
-    <Button variant="ghost" size="icon" onClick={() => setTheme(next)} title="Change theme">
-      {options.map(({ value, label, icon: Icon }) => (
-        <span key={value} data-theme-option={value}>
-          <Icon aria-hidden="true" />
-          <span className="sr-only">Theme: {label}. Change theme</span>
-        </span>
-      ))}
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+      title="Toggle theme"
+    >
+      <span data-theme-option="dark">
+        <Sun aria-hidden="true" />
+        <span className="sr-only">Switch to light theme</span>
+      </span>
+      <span data-theme-option="light">
+        <Moon aria-hidden="true" />
+        <span className="sr-only">Switch to dark theme</span>
+      </span>
     </Button>
   );
 }

@@ -3,26 +3,24 @@
 import { useSyncExternalStore } from "react";
 import { THEME_STORAGE_KEY } from "@/lib/theme-script";
 
-export type Theme = "light" | "dark" | "system";
+/** Dark by default; light only when the visitor chose it (remembered in localStorage). */
+export type Theme = "light" | "dark";
 
 const listeners = new Set<() => void>();
-const DARK_QUERY = "(prefers-color-scheme: dark)";
 
 function readTheme(): Theme {
   try {
-    const value = localStorage.getItem(THEME_STORAGE_KEY);
-    return value === "light" || value === "dark" ? value : "system";
+    return localStorage.getItem(THEME_STORAGE_KEY) === "light" ? "light" : "dark";
   } catch {
-    return "system";
+    return "dark";
   }
 }
 
 function applyTheme(theme: Theme) {
-  const dark = theme === "dark" || (theme === "system" && matchMedia(DARK_QUERY).matches);
   const root = document.documentElement;
-  root.classList.toggle("dark", dark);
+  root.classList.toggle("dark", theme === "dark");
   root.dataset.themePref = theme;
-  root.style.colorScheme = dark ? "dark" : "light";
+  root.style.colorScheme = theme;
 }
 
 function emit() {
@@ -31,28 +29,22 @@ function emit() {
 
 function subscribe(listener: () => void) {
   listeners.add(listener);
-  const media = matchMedia(DARK_QUERY);
-  const onSystemChange = () => {
-    if (readTheme() === "system") applyTheme("system");
-  };
+  // Keep other open tabs in sync.
   const onStorage = (event: StorageEvent) => {
     if (event.key !== THEME_STORAGE_KEY) return;
     applyTheme(readTheme());
     emit();
   };
-  media.addEventListener("change", onSystemChange);
   window.addEventListener("storage", onStorage);
   return () => {
     listeners.delete(listener);
-    media.removeEventListener("change", onSystemChange);
     window.removeEventListener("storage", onStorage);
   };
 }
 
 export function setTheme(theme: Theme) {
   try {
-    if (theme === "system") localStorage.removeItem(THEME_STORAGE_KEY);
-    else localStorage.setItem(THEME_STORAGE_KEY, theme);
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
   } catch {
     // Storage unavailable (private mode); the theme still applies for this page view.
   }
@@ -61,6 +53,6 @@ export function setTheme(theme: Theme) {
 }
 
 export function useTheme() {
-  const theme = useSyncExternalStore(subscribe, readTheme, () => "system" as Theme);
+  const theme = useSyncExternalStore(subscribe, readTheme, () => "dark" as Theme);
   return { theme, setTheme };
 }

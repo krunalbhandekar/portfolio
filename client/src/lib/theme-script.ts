@@ -2,7 +2,7 @@ export const THEME_STORAGE_KEY = "theme";
 
 /**
  * Runs in <head> before first paint so the page never flashes the wrong theme.
- * Kept dependency-free and tiny; mirrors `applyTheme` in `use-theme.ts`.
- * `data-theme-pref` holds the chosen mode (system/light/dark) for the toggle icon (CSS-driven).
+ * Dark unless the visitor chose light; mirrors `applyTheme` in `use-theme.ts`.
+ * `data-theme-pref` drives the toggle's icon (CSS), so it's right before hydration.
  */
-export const themeScript = `(function(){try{var t=localStorage.getItem("${THEME_STORAGE_KEY}")||"system";var d=t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);var r=document.documentElement;r.classList.add("js");r.classList.toggle("dark",d);r.dataset.themePref=t;r.style.colorScheme=d?"dark":"light"}catch(e){}})()`;
+export const themeScript = `(function(){try{var t=localStorage.getItem("${THEME_STORAGE_KEY}")==="light"?"light":"dark";var r=document.documentElement;r.classList.add("js");r.classList.toggle("dark",t==="dark");r.dataset.themePref=t;r.style.colorScheme=t}catch(e){}})()`;

@@ -183,14 +183,14 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* Theme toggle: show the icon for the stored preference (set before paint by themeScript). */
+/* Theme toggle: show the button content for the current theme (set before paint by
+   themeScript; dark when nothing is set). */
 [data-theme-option] {
   display: none;
 }
-html:not([data-theme-pref]) [data-theme-option="system"],
-html[data-theme-pref="system"] [data-theme-option="system"],
-html[data-theme-pref="light"] [data-theme-option="light"],
-html[data-theme-pref="dark"] [data-theme-option="dark"] {
+html:not([data-theme-pref]) [data-theme-option="dark"],
+html[data-theme-pref="dark"] [data-theme-option="dark"],
+html[data-theme-pref="light"] [data-theme-option="light"] {
   display: contents;
 }
 
