@@ -1,6 +1,7 @@
 import { CaseStudy } from "../case-studies/case-study.model.js";
 import { EngineeringItem } from "../engineering/engineering.model.js";
 import { Post } from "../posts/post.model.js";
+import { featuredFirst, getFeaturedIds } from "../projects/featured.js";
 import { Project } from "../projects/project.model.js";
 import { Skill } from "../skills/skill.model.js";
 
@@ -29,9 +30,9 @@ const ENGINEERING_LABELS: Record<string, string> = {
  * client caches it and filters instantly — search keeps working while the API sleeps.
  */
 export async function getSearchIndex(): Promise<SearchItem[]> {
-  const [projects, studies, skills, posts, engineering] = await Promise.all([
+  const [allProjects, studies, skills, posts, engineering, featured] = await Promise.all([
     Project.find(PUBLISHED, { title: 1, slug: 1, summary: 1, technologies: 1, category: 1 })
-      .sort({ featured: -1, order: 1 })
+      .sort({ order: 1 })
       .lean(),
     CaseStudy.find(PUBLISHED, { title: 1, slug: 1, summary: 1 }).sort({ order: 1 }).lean(),
     Skill.find(PUBLISHED, { name: 1, slug: 1, category: 1 }).sort({ order: 1 }).lean(),
@@ -41,7 +42,9 @@ export async function getSearchIndex(): Promise<SearchItem[]> {
     EngineeringItem.find(PUBLISHED, { title: 1, slug: 1, type: 1, summary: 1 })
       .sort({ order: 1 })
       .lean(),
+    getFeaturedIds(),
   ]);
+  const projects = featuredFirst(allProjects, featured);
   const line = (value: unknown) => String(value ?? "").slice(0, 120);
   return [
     ...projects.map((p) => ({

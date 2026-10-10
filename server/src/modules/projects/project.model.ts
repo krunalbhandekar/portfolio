@@ -19,7 +19,6 @@ const projectSchema = new Schema({
   teamSize: Number,
   projectStatus: String,
   technologies: [String],
-  featured: { type: Boolean, default: false },
   confidential: { type: Boolean, default: false },
   thumbnail: mediaRefSchema,
   gallery: [galleryItemSchema],
@@ -43,7 +42,7 @@ const projectSchema = new Schema({
   experienceId: { type: Schema.Types.ObjectId, ref: "Experience" },
 });
 projectSchema.plugin(contentFieldsPlugin);
-projectSchema.index({ status: 1, featured: 1, order: 1 });
+projectSchema.index({ status: 1, order: 1 });
 projectSchema.index({ title: "text", summary: "text", technologies: "text", features: "text" });
 
 export const Project = model("Project", projectSchema, "projects");

@@ -4,6 +4,7 @@ import { BuiltFeature } from "../built-features/built-feature.model.js";
 import { Experience } from "../experiences/experience.model.js";
 import { Post } from "../posts/post.model.js";
 import { POST_CARD } from "../posts/post.public.js";
+import { featuredFirst, getFeaturedIds, markFeatured } from "../projects/featured.js";
 import { Project } from "../projects/project.model.js";
 import { Skill } from "./skill.model.js";
 
@@ -33,7 +34,7 @@ export async function getSkill(slug: string) {
   // Posts can be tagged with the slug ("node-js") or the name ("node.js").
   const postTags = [...new Set([slug, skill.name.toLowerCase()])];
 
-  const [projects, features, experiences, posts] = await Promise.all([
+  const [rawProjects, features, experiences, posts, featured] = await Promise.all([
     Project.find(
       {
         ...PUBLISHED,
@@ -47,7 +48,6 @@ export async function getSkill(slug: string) {
         category: 1,
         type: 1,
         technologies: 1,
-        featured: 1,
         confidential: 1,
         thumbnail: 1,
         projectStatus: 1,
@@ -55,7 +55,7 @@ export async function getSkill(slug: string) {
         endDate: 1,
       },
     )
-      .sort({ featured: -1, order: 1 })
+      .sort({ order: 1 })
       .lean(),
     BuiltFeature.find({ ...PUBLISHED, technologies: slug }, { feature: 1, area: 1, projectId: 1 })
       .sort({ order: 1 })
@@ -70,7 +70,9 @@ export async function getSkill(slug: string) {
       .sort({ publishedAt: -1 })
       .limit(6)
       .lean(),
+    getFeaturedIds(),
   ]);
+  const projects = markFeatured(featuredFirst(rawProjects, featured), featured);
 
   const projectSlugs = new Map(projects.map((p) => [String(p._id), p.slug]));
   const { projectIds: _ids, ...rest } = skill; // eslint-disable-line @typescript-eslint/no-unused-vars -- internal ids aren't public

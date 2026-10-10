@@ -41,7 +41,6 @@ export const projectInput = z.object({
   teamSize: nullableNumber(1, 500),
   projectStatus: z.enum(PROJECT_STATUSES).default("completed"),
   technologies: slugList(30),
-  featured: z.boolean().default(false),
   /** Professional work under NDA: redacted visuals, no code or internal links (portfolio.md §3.5). */
   confidential: z.boolean().default(false),
   thumbnail: nullableMediaRef,

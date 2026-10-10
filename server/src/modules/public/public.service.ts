@@ -15,6 +15,7 @@ import { Project } from "../projects/project.model.js";
 import { Resume } from "../resumes/resume.model.js";
 import { SiteSettings } from "../settings/settings.model.js";
 import { Skill } from "../skills/skill.model.js";
+import { featuredFirst, getFeaturedIds, markFeatured } from "../projects/featured.js";
 import { Testimonial } from "../testimonials/testimonial.model.js";
 import { Page, PAGE_KEYS, type PageKey } from "../pages/page.model.js";
 import { SeoSettings } from "../seo/seo.model.js";
@@ -76,7 +77,6 @@ const PROJECT_CARD = {
   category: 1,
   type: 1,
   technologies: 1,
-  featured: 1,
   confidential: 1,
   thumbnail: 1,
   projectStatus: 1,
@@ -112,24 +112,21 @@ export async function getVisiblePages() {
 
 export async function getHome() {
   const homepage = await Homepage.findOne({ key: "default" }, INTERNAL).lean();
+  // Only the projects picked in Admin → Homepage, in that order (portfolio.md §3.1).
   const featuredIds = (homepage?.featuredProjectIds ?? []).map(
     (id) => new Types.ObjectId(String(id)),
   );
-
-  // Explicit selection keeps its order; otherwise fall back to projects flagged "featured".
-  let featuredProjects;
+  let featuredProjects: ReturnType<typeof markFeatured<{ _id: Types.ObjectId }>> = [];
   if (featuredIds.length) {
     const found = await Project.find(
       { ...PUBLISHED, _id: mongoose.trusted({ $in: featuredIds }) },
       PROJECT_CARD,
     ).lean();
     const byId = new Map(found.map((p) => [String(p._id), p]));
-    featuredProjects = featuredIds.map((id) => byId.get(String(id))).filter(Boolean);
-  } else {
-    featuredProjects = await Project.find({ ...PUBLISHED, featured: true }, PROJECT_CARD)
-      .sort({ order: 1 })
-      .limit(6)
-      .lean();
+    featuredProjects = markFeatured(
+      featuredIds.map((id) => byId.get(String(id))).filter((p) => p !== undefined),
+      featuredIds.map(String),
+    );
   }
 
   const [experiences, skills, about] = await Promise.all([
@@ -196,7 +193,6 @@ type ProjectQuery = {
   tech?: string;
   type?: string;
   q?: string;
-  featured?: boolean;
 };
 
 export async function getProjects(query: ProjectQuery) {
@@ -204,7 +200,6 @@ export async function getProjects(query: ProjectQuery) {
   if (query.category) filter.category = query.category;
   if (query.type) filter.type = query.type;
   if (query.tech) filter.technologies = query.tech;
-  if (query.featured) filter.featured = true;
   if (query.q) {
     const pattern = new RegExp(escapeRegex(query.q), "i");
     filter.$or = mongoose.trusted([
@@ -214,15 +209,19 @@ export async function getProjects(query: ProjectQuery) {
       { features: pattern },
     ]);
   }
-  return Project.find(filter, PROJECT_CARD).sort({ featured: -1, order: 1 }).lean();
+  const [projects, featured] = await Promise.all([
+    Project.find(filter, PROJECT_CARD).sort({ order: 1 }).lean(),
+    getFeaturedIds(),
+  ]);
+  return markFeatured(featuredFirst(projects, featured), featured);
 }
 
 export async function getProject(slug: string, options: ReadOptions = {}) {
   const project = await Project.findOne({ ...visible(options), slug }, INTERNAL).lean();
   if (!project) throw notFound("Project not found");
 
-  const [ordered, related, experience, caseStudy] = await Promise.all([
-    Project.find(PUBLISHED, { title: 1, slug: 1 }).sort({ featured: -1, order: 1 }).lean(),
+  const [allOrdered, allRelated, experience, caseStudy, featured] = await Promise.all([
+    Project.find(PUBLISHED, { title: 1, slug: 1 }).sort({ order: 1 }).lean(),
     Project.find(
       {
         ...PUBLISHED,
@@ -234,8 +233,7 @@ export async function getProject(slug: string, options: ReadOptions = {}) {
       },
       PROJECT_CARD,
     )
-      .sort({ featured: -1, order: 1 })
-      .limit(3)
+      .sort({ order: 1 })
       .lean(),
     project.experienceId
       ? Experience.findOne(
@@ -247,7 +245,10 @@ export async function getProject(slug: string, options: ReadOptions = {}) {
       { ...visible(options), projectId: project._id },
       { title: 1, slug: 1 },
     ).lean(),
+    getFeaturedIds(),
   ]);
+  const ordered = featuredFirst(allOrdered, featured);
+  const related = markFeatured(featuredFirst(allRelated, featured).slice(0, 3), featured);
 
   const index = ordered.findIndex((p) => String(p._id) === String(project._id));
   const neighbour = (i: number) =>
@@ -257,6 +258,7 @@ export async function getProject(slug: string, options: ReadOptions = {}) {
   const { demoCredentials, ...rest } = project;
   return {
     ...rest,
+    featured: featured.includes(String(project._id)),
     demoCredentials: project.type === "personal" ? (demoCredentials ?? null) : null,
     experience,
     caseStudy: caseStudy ? { title: caseStudy.title, slug: caseStudy.slug } : null,
@@ -290,7 +292,7 @@ export async function getCaseStudies() {
 export async function getCaseStudy(slug: string, options: ReadOptions = {}) {
   const study = await CaseStudy.findOne({ ...visible(options), slug }, INTERNAL).lean();
   if (!study) throw notFound("Case study not found");
-  const [project, more] = await Promise.all([
+  const [rawProject, more, featured] = await Promise.all([
     study.projectId
       ? Project.findOne({ ...visible(options), _id: study.projectId }, PROJECT_CARD).lean()
       : null,
@@ -298,7 +300,9 @@ export async function getCaseStudy(slug: string, options: ReadOptions = {}) {
       .sort({ featured: -1, order: 1 })
       .limit(2)
       .lean(),
+    getFeaturedIds(),
   ]);
+  const project = rawProject ? markFeatured([rawProject], featured)[0]! : null;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- strip the raw id; `project` replaces it
   const { projectId: _projectId, ...rest } = study;
   return { ...rest, project, more };

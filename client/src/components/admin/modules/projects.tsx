@@ -1,7 +1,6 @@
 "use client";
 
 import { useWatch } from "react-hook-form";
-import { Star } from "lucide-react";
 import { Callout } from "@/components/shared/callout";
 import { slugify } from "@/lib/slug";
 import {
@@ -66,15 +65,9 @@ function ProjectFields() {
         />
         <div className="flex flex-col gap-3 sm:col-span-2 sm:flex-row">
           <SwitchField
-            name="featured"
-            label="Featured"
-            description="Pinned at the top of the projects grid."
-            className="flex-1"
-          />
-          <SwitchField
             name="confidential"
             label="Confidential (NDA)"
-            description="Professional work: no code, redacted visuals."
+            description="Professional work: no code, redacted visuals. (To feature a project, pick it in Homepage → Featured projects.)"
             className="flex-1"
           />
         </div>
@@ -246,14 +239,7 @@ export const projectsConfig: ResourceConfig = {
     {
       header: "Title",
       sortKey: "title",
-      cell: (d) => (
-        <span className="inline-flex items-center gap-1.5">
-          {d.featured ? (
-            <Star className="size-3.5 fill-amber-400 text-amber-400" aria-label="Featured" />
-          ) : null}
-          {String(d.title)}
-        </span>
-      ),
+      cell: (d) => String(d.title),
     },
     { header: "Category", cell: (d) => labelFor(PROJECT_CATEGORIES, d.category) },
     {
@@ -282,7 +268,6 @@ export const projectsConfig: ResourceConfig = {
     teamSize: null,
     projectStatus: "completed",
     technologies: [],
-    featured: false,
     confidential: false,
     thumbnail: null,
     gallery: [],

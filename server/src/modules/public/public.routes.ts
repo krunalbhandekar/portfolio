@@ -33,7 +33,6 @@ const projectsQuery = z.object({
   tech: z.string().regex(SLUG_PATTERN).optional(),
   type: z.enum(["professional", "personal"]).optional(),
   q: z.string().trim().max(100).optional(),
-  featured: z.enum(["true", "false"]).optional(),
 });
 const slugParams = z.object({ slug: z.string().regex(SLUG_PATTERN) });
 const resumeQuery = z.object({ v: z.string().regex(SLUG_PATTERN).optional() });
@@ -53,8 +52,10 @@ export const publicRoutes = Router()
   .get("/about", async (_req, res) => sendSuccess(res, await service.getAbout()))
   .get("/experiences", async (_req, res) => sendSuccess(res, await service.getExperiences()))
   .get("/projects", validate({ query: projectsQuery }), async (req, res) => {
-    const { featured, ...query } = req.validatedQuery as z.infer<typeof projectsQuery>;
-    sendSuccess(res, await service.getProjects({ ...query, featured: featured === "true" }));
+    sendSuccess(
+      res,
+      await service.getProjects(req.validatedQuery as z.infer<typeof projectsQuery>),
+    );
   })
   .get("/projects/:slug", validate({ params: slugParams }), async (req, res) =>
     sendSuccess(res, await service.getProject(req.params.slug as string)),

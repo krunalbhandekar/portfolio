@@ -135,7 +135,8 @@ export const contentRoutes = Router()
         featuredProjectIds: [],
         nowSnippet: "",
       },
-      tags: ["homepage"],
+      // Featured projects are picked here: project badges and order follow.
+      tags: ["homepage", "projects"],
     }),
   )
   .use(

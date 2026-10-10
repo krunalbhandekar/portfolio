@@ -154,7 +154,7 @@ function HomepageFields() {
 
       <FormSection
         title="Featured projects"
-        description="Shown on the homepage in this order (max 6)."
+        description="Up to 6, in display order. All of them appear on the homepage and get the ★ Featured badge (and are listed first) across the site; the first 3 are the top projects on /hire."
       >
         <ReferenceListField name="featuredProjectIds" label="Projects" apiPath="projects" max={6} />
       </FormSection>
