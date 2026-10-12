@@ -42,6 +42,7 @@ export const SKILL_CATEGORIES = opts([
   ["database", "Database"],
   ["devops", "DevOps"],
   ["cloud", "Cloud"],
+  ["ai", "AI"],
   ["tools", "Tools"],
   ["other", "Other"],
 ]);

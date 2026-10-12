@@ -7,6 +7,7 @@ export const SKILL_CATEGORIES = [
   "database",
   "devops",
   "cloud",
+  "ai",
   "tools",
   "other",
 ] as const;

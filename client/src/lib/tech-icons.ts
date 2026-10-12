@@ -1,4 +1,5 @@
 import {
+  siClaude,
   siCloudinary,
   siCss,
   siDocker,
@@ -13,8 +14,8 @@ import {
   siJest,
   siJsonwebtokens,
   siKubernetes,
+  siModelcontextprotocol,
   siMongodb,
-  siMysql,
   siNextdotjs,
   siNginx,
   siNodedotjs,
@@ -54,7 +55,6 @@ export const techIcons: Record<string, SimpleIcon> = {
   redux: siRedux,
   "react-query": siReactquery,
   postgresql: siPostgresql,
-  mysql: siMysql,
   redis: siRedis,
   vercel: siVercel,
   render: siRender,
@@ -69,4 +69,6 @@ export const techIcons: Record<string, SimpleIcon> = {
   figma: siFigma,
   jest: siJest,
   x: siX,
+  claude: siClaude,
+  mcp: siModelcontextprotocol,
 };

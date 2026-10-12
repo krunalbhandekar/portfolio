@@ -60,6 +60,7 @@ export const SKILL_CATEGORY_LABELS: Record<string, string> = {
   database: "Database",
   devops: "DevOps",
   cloud: "Cloud",
+  ai: "AI",
   tools: "Tools",
   other: "Other",
 };
