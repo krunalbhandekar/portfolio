@@ -332,3 +332,235 @@ html.js [data-reveal-group]:not([data-revealed]) [data-reveal-item] {
     animation: none !important;
   }
 }
+
+/* ───────────────────────── Motion pass (CSS-first; motion.dev only for springs/layout) ───── */
+
+/* Hero entrance: children rise in one after another on first paint. The h1 (LCP) only moves
+   and unblurs, never starts invisible, so it doesn't delay Largest Contentful Paint. */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+    filter: blur(6px);
+  }
+}
+@keyframes rise-in-visible {
+  from {
+    transform: translateY(10px);
+    filter: blur(4px);
+  }
+}
+.hero-enter > :not(.hero-glow) {
+  animation: rise-in 0.7s cubic-bezier(0.21, 0.47, 0.32, 0.98) both;
+}
+.hero-enter > :nth-child(3) {
+  animation-delay: 0.08s;
+}
+.hero-enter > :not(.hero-glow):has(> h1) {
+  animation-name: rise-in-visible;
+}
+.hero-enter > :nth-child(4) {
+  animation-delay: 0.18s;
+}
+.hero-enter > :nth-child(5) {
+  animation-delay: 0.26s;
+}
+.hero-enter > :nth-child(6) {
+  animation-delay: 0.34s;
+}
+
+/* Slowly drifting brand glow behind the hero (transform-only, GPU-composited). */
+@keyframes orb-drift {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(6%, 8%) scale(1.08);
+  }
+  66% {
+    transform: translate(-6%, 4%) scale(0.95);
+  }
+}
+/* Clips the orb's blur sideways only, so it never widens the page on phones. */
+.hero-glow {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow-x: clip;
+  pointer-events: none;
+}
+.hero-orb {
+  position: absolute;
+  top: -10%;
+  right: 0;
+  width: min(520px, 80vw);
+  aspect-ratio: 1;
+  border-radius: 9999px;
+  background: radial-gradient(
+    circle at 35% 35%,
+    color-mix(in oklch, var(--brand) 30%, transparent),
+    color-mix(in oklch, var(--brand) 8%, transparent) 45%,
+    transparent 70%
+  );
+  filter: blur(40px);
+  animation: orb-drift 18s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Animated gradient text (hero subheadline). Falls back to muted text without clip support. */
+@keyframes gradient-pan {
+  to {
+    background-position: 200% center;
+  }
+}
+.text-gradient {
+  color: var(--muted-foreground);
+}
+@supports (background-clip: text) {
+  .text-gradient {
+    background: linear-gradient(
+      90deg,
+      var(--muted-foreground) 0%,
+      var(--brand-text) 25%,
+      var(--foreground) 50%,
+      var(--brand-text) 75%,
+      var(--muted-foreground) 100%
+    );
+    background-size: 200% auto;
+    background-clip: text;
+    color: transparent;
+    animation: gradient-pan 8s linear infinite;
+  }
+}
+/* Same treatment, but only while a link is hovered (Next-up title). */
+.text-gradient-hover {
+  background: linear-gradient(90deg, var(--foreground), var(--brand-text), var(--foreground));
+  background-size: 200% auto;
+  background-clip: text;
+  transition: background-position 0.6s ease;
+}
+.text-gradient-hover:hover,
+.text-gradient-hover:focus-visible {
+  color: transparent;
+  background-position: 100% center;
+}
+
+/* Primary CTA: soft brand halo that intensifies on hover. */
+.cta-glow {
+  box-shadow: 0 0 0 0 transparent;
+  transition:
+    box-shadow 0.3s ease,
+    background-color 0.2s ease;
+}
+.cta-glow:hover {
+  box-shadow:
+    0 0 0 4px color-mix(in oklch, var(--brand) 18%, transparent),
+    0 10px 40px -8px color-mix(in oklch, var(--brand) 60%, transparent);
+}
+
+/* Reading progress under the navbar, driven by page scroll (no JS). */
+.scroll-progress {
+  display: none;
+}
+@supports (animation-timeline: scroll()) {
+  @keyframes grow-x {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+  .scroll-progress {
+    display: block;
+    position: absolute;
+    inset-inline: 0;
+    bottom: -1px;
+    height: 2px;
+    transform-origin: left;
+    background: linear-gradient(
+      90deg,
+      color-mix(in oklch, var(--brand) 30%, transparent),
+      var(--brand)
+    );
+    animation: grow-x linear both;
+    animation-timeline: scroll(root block);
+  }
+}
+
+/* 3D tilt for cards with <PointerGlow> (variables set from the pointer position). */
+.tilt-card {
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition:
+    transform 0.4s cubic-bezier(0.21, 0.47, 0.32, 0.98),
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+.tilt-card:hover {
+  transition:
+    transform 0.12s linear,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+/* Nav hint: a short brand underline with a light sweeping across it, on the one section
+   suggested next (components/layout/desktop-nav.tsx). */
+@keyframes nav-hint-sweep {
+  0%,
+  40% {
+    background-position: 150% 0;
+  }
+  100% {
+    background-position: -50% 0;
+  }
+}
+.nav-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  width: 40%;
+  height: 2px;
+  translate: -50% 0;
+  border-radius: 9999px;
+  background:
+    linear-gradient(90deg, transparent, var(--foreground), transparent) 150% 0 / 50% 100% no-repeat,
+    color-mix(in oklch, var(--brand) 70%, transparent);
+  animation: nav-hint-sweep 3.2s ease-in-out infinite;
+}
+
+/* Route transitions (app/(public)/template.tsx): quick fade out, softer rise in. */
+@keyframes page-fade-out {
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+    filter: blur(4px);
+  }
+}
+::view-transition-old(.page-exit) {
+  animation: page-fade-out 160ms ease-in both;
+}
+::view-transition-new(.page-enter) {
+  animation: page-fade-in 360ms cubic-bezier(0.21, 0.47, 0.32, 0.98) 80ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-orb,
+  .nav-hint,
+  .text-gradient,
+  .scroll-progress {
+    animation: none !important;
+  }
+  .scroll-progress {
+    display: none;
+  }
+  .tilt-card {
+    transform: none;
+  }
+}

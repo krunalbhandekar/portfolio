@@ -5,7 +5,7 @@ export function Stat({
   label,
   className,
 }: {
-  value: string;
+  value: React.ReactNode;
   label: string;
   className?: string;
 }) {

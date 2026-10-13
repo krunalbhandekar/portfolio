@@ -12,6 +12,7 @@ import {
   TestimonialsSection,
   type SectionProps,
 } from "@/components/home/home-sections";
+import { ExploreSection } from "@/components/home/explore-section";
 import { JsonLd } from "@/components/shared/json-ld";
 import { getHome, getSettings, skillNames } from "@/lib/data/public";
 import type { HomepageSectionKey } from "@/lib/data/types";
@@ -83,6 +84,7 @@ export default async function Home() {
         const index = key === "hero" ? "" : String(++n).padStart(2, "0");
         return <Section key={key} home={home} settings={settings} names={names} index={index} />;
       })}
+      <ExploreSection index={String(++n).padStart(2, "0")} />
     </>
   );
 }

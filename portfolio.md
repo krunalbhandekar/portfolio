@@ -46,7 +46,7 @@
 |---|---|---|
 | Frontend (`client/`) | **Next.js (App Router) + TypeScript** | SSG/ISR for SEO, Metadata API, sitemap, OG image generation |
 | Styling | Tailwind CSS + shadcn/ui | Fast, consistent, small bundle, modern look out of the box |
-| Motion | CSS transitions + IntersectionObserver + native View Transitions API | Subtle animations with no animation library (Motion was dropped in Phase 4 for bundle size) |
+| Motion | CSS (transitions, scroll-driven animations) + IntersectionObserver + native View Transitions API; `motion` (motion.dev) via `LazyMotion` + `m` for springs and shared-layout only | CSS-first. Motion was dropped in Phase 4 for bundle size and re-added later for the nav pill, magnetic CTA and explore checklist, with features loaded lazily so first-load JS barely changes |
 | Fonts | Geist Sans + Geist Mono (via `next/font`) | Clean modern developer aesthetic |
 | Icons | lucide-react + simple-icons (tech logos) | |
 | Data fetching (admin) | TanStack Query | Caching, mutations, optimistic updates in the CMS |

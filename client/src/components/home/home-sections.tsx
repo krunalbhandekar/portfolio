@@ -3,6 +3,8 @@ import Link from "next/link";
 import { ArrowRight, BadgeCheck, MapPin } from "lucide-react";
 import { PostCard } from "@/components/blog/post-card";
 import { CaseStudyCard } from "@/components/case-studies/case-study-card";
+import { CountUp } from "@/components/motion/count-up";
+import { Magnetic } from "@/components/motion/magnetic";
 import { Reveal } from "@/components/motion/reveal";
 import { ProjectCard } from "@/components/projects/project-card";
 import { BentoCard } from "@/components/shared/bento-card";
@@ -37,7 +39,11 @@ export function HeroSection({ home, settings, names }: SectionProps) {
         { label: "Contact Me", href: "/contact", variant: "outline" as const },
       ];
   return (
-    <section className="container-page flex flex-col gap-8 pt-16 pb-12 sm:pt-24">
+    // `hero-enter` staggers the children in with CSS on first paint (globals.css).
+    <section className="hero-enter relative container-page flex flex-col gap-8 pt-16 pb-12 sm:pt-24">
+      <div aria-hidden="true" className="hero-glow">
+        <div className="hero-orb" />
+      </div>
       <StatusBadge text={settings.availabilityText} />
       <div className="flex max-w-3xl flex-col gap-5">
         {hero?.eyebrow ? (
@@ -54,7 +60,7 @@ export function HeroSection({ home, settings, names }: SectionProps) {
         ) : null}
         <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-6xl">
           {hero?.headline || settings.name}
-          <span className="block text-muted-foreground">{hero?.subheadline || settings.role}</span>
+          <span className="text-gradient block">{hero?.subheadline || settings.role}</span>
         </h1>
         {hero?.positioning || settings.tagline ? (
           <p className="max-w-2xl text-lg text-pretty text-muted-foreground">
@@ -76,20 +82,30 @@ export function HeroSection({ home, settings, names }: SectionProps) {
         </ul>
       ) : null}
       <div className="flex flex-wrap gap-3">
-        {ctas.map((cta, i) => (
-          <Link
-            key={cta.href + cta.label}
-            href={cta.href}
-            prefetch={cta.href.startsWith("/") ? undefined : false}
-            className={cn(
-              buttonVariants({ variant: ctaVariant[cta.variant] ?? "outline", size: "lg" }),
-              "h-10 px-4",
-            )}
-          >
-            {cta.label}
-            {i === 0 ? <ArrowRight aria-hidden="true" /> : null}
-          </Link>
-        ))}
+        {ctas.map((cta, i) => {
+          const link = (
+            <Link
+              key={cta.href + cta.label}
+              href={cta.href}
+              prefetch={cta.href.startsWith("/") ? undefined : false}
+              className={cn(
+                buttonVariants({ variant: ctaVariant[cta.variant] ?? "outline", size: "lg" }),
+                "h-10 px-4",
+                i === 0 && "cta-glow group/cta",
+              )}
+            >
+              {cta.label}
+              {i === 0 ? (
+                <ArrowRight
+                  className="transition-transform group-hover/cta:translate-x-0.5"
+                  aria-hidden="true"
+                />
+              ) : null}
+            </Link>
+          );
+          // The primary CTA leans towards the cursor (motion spring).
+          return i === 0 ? <Magnetic key={cta.href + cta.label}>{link}</Magnetic> : link;
+        })}
       </div>
     </section>
   );
@@ -107,7 +123,7 @@ export function StatsSection({ home }: SectionProps) {
         <ul className="grid grid-cols-2 gap-6 rounded-2xl border bg-card p-6 sm:grid-cols-4">
           {stats.map((stat) => (
             <li key={stat.label}>
-              <Stat value={stat.value} label={stat.label} />
+              <Stat value={<CountUp value={stat.value} />} label={stat.label} />
             </li>
           ))}
         </ul>
