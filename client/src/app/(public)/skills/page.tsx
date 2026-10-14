@@ -10,7 +10,17 @@ import { SKILL_CATEGORY_LABELS } from "@/lib/format";
 import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
 import { techIcons } from "@/lib/tech-icons";
 
-const CATEGORY_ORDER = ["frontend", "backend", "database", "devops", "cloud", "ai", "tools", "other"];
+const CATEGORY_ORDER = [
+  "frontend",
+  "backend",
+  "database",
+  "devops",
+  "deployment",
+  "cloud",
+  "ai",
+  "tools",
+  "other",
+];
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSettings();
