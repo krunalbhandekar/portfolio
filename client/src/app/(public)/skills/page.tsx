@@ -18,6 +18,7 @@ const CATEGORY_ORDER = [
   "deployment",
   "cloud",
   "ai",
+  "integration",
   "tools",
   "other",
 ];
@@ -58,11 +59,12 @@ export default async function SkillsPage() {
       {groups.length === 0 ? (
         <EmptyState icon={Cpu} title="Skills coming soon" />
       ) : (
-        <div className="grid gap-8 md:grid-cols-2">
+        // Masonry columns: each category keeps its own height, so short ones don't leave gaps.
+        <div className="gap-8 md:columns-2">
           {groups.map((group) => (
             <section
               key={group.category}
-              className="flex flex-col gap-4 rounded-2xl border bg-card p-6"
+              className="mb-8 flex break-inside-avoid flex-col gap-4 rounded-2xl border bg-card p-6"
             >
               <h2 className="font-mono text-xs tracking-widest text-brand-text uppercase">
                 {SKILL_CATEGORY_LABELS[group.category] ?? group.category}

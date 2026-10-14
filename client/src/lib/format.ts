@@ -62,6 +62,7 @@ export const SKILL_CATEGORY_LABELS: Record<string, string> = {
   deployment: "Deployment",
   cloud: "Cloud",
   ai: "AI",
+  integration: "Integration",
   tools: "Tools",
   other: "Other",
 };
